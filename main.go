@@ -36,7 +36,7 @@ func main() {
 	r.GET("/list", func(c *gin.Context) {
 		_, _ = c.Writer.Write(list)
 	})
-	r.GET("/details", func(c *gin.Context) {
+	r.GET("/details/:index", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
 			"message": "implement me",
 		})
@@ -45,7 +45,6 @@ func main() {
 		c.JSON(http.StatusOK, track.GetAll())
 	})
 	r.GET("/download/:index", func(c *gin.Context) {
-		println(index)
 		record, found := track.Get(c.Param("index"))
 		if found {
 			c.Header("Content-Description", "File Transfer")
