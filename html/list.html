@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+    <!-- 必须的 meta 标签 -->
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
+    <!-- Bootstrap 的 CSS 文件 -->
+
+    <script crossorigin="anonymous" src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script crossorigin="anonymous"
+            src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-base64@3.6.0/base64.min.js"></script>
+
+    <link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css"
+          integrity="sha384-B0vP5xmATw1+K9KRQjQERJvTumQW0nPEzvF6L/Z6nronJ3oUOFUFpCjEUQouq2+l" rel="stylesheet">
+
+    <title>MJJMusic</title>
+    <script lang="javascript">
+        const cardFormat = "<div class=\"card\">\n" +
+            "    <div class=\"card-body\">\n" +
+            "        <h4 class=\"card-title\">[NAME]</h4>\n" +
+            "        <p class=\"card-text\">[DESC]</p>\n" +
+            "        <div class=\"d-flex justify-content-between align-items-center\">\n" +
+            "            <div class=\"btn-group\">\n" +
+            "                <button type=\"button\" class=\"btn btn-sm btn-outline-secondary\"\n" +
+            "                        onclick=\"document.location='details/[INDEX]'\">Details\n" +
+            "                </button>\n" +
+            "                <button type=\"button\" class=\"btn btn-sm btn-outline-secondary\"\n" +
+            "                        onclick=\"document.location='download/[INDEX]'\">Download\n" +
+            "                </button>\n" +
+            "            </div>\n" +
+            "            <small class=\"text-muted\">[YEAR]</small>\n" +
+            "        </div>\n" +
+            "    </div>\n" +
+            "</div>"
+
+        function formatHTML(name, desc, year, index) {
+            return cardFormat.replaceAll("[NAME]", name)
+                .replaceAll("[DESC]", desc.replaceAll("\n", "<br>"))
+                .replaceAll("[YEAR]", year)
+                .replaceAll("[INDEX]", index);
+            //(cardFormat, name, desc, index, index, year);
+        }
+
+        $(document).ready(function () {
+            $.getJSON('obtain_list', {},
+                function (result) {
+                    for (const track of result) {
+                        $('#list').append(formatHTML(track.Name, track.Desc, track.Year, track.Index));
+                    }
+                }
+            )
+        })
+    </script>
+</head>
+
+<body class="text-center">
+
+<nav class="navbar navbar-expand-lg navbar-light bg-light">
+    <a class="navbar-brand" href="#">MJJ Unreleased & Demo</a>
+    <button aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler"
+            data-target="#navbarNav" data-toggle="collapse" type="button">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav">
+            <li class="nav-item active">
+                <a class="nav-link" href="/">Home <span class="sr-only"></span></a>
+                <a class="nav-link" href="#">List <span class="sr-only">(current)</span></a>
+            </li>
+        </ul>
+    </div>
+    <style>
+        .primary {
+            padding: 3rem 1.5rem;
+        }
+    </style>
+</nav>
+
+<main role="main" class="container-fluid primary">
+    <div class="container align-items-center">
+        <div class="container h-100">
+            <div class="">
+                <h1>👑 Michael Jackson Unreleased tracks(musics) list</h1>
+                <div class="list-group" id="list">
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+</body>
+
+</html>

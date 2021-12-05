@@ -2,24 +2,62 @@ package main
 
 import (
 	_ "embed"
+	"github.com/blackjack200/mjjmusic/track"
 	"github.com/gin-gonic/gin"
+	"net/http"
+	"os"
+	"path/filepath"
 )
 
 //go:embed html/index.html
 var index []byte
 
+//go:embed html/list.html
+var list []byte
+
 func main() {
+	gin.Logger()
+	if wd, err := os.Getwd(); err != nil {
+		panic(err)
+	} else {
+		path := filepath.Join(wd, "music")
+		if err := os.MkdirAll(path, 0777); err != nil {
+			panic(err)
+		}
+		println(path)
+		if err := track.Load(path); err != nil {
+			panic(err)
+		}
+	}
 	r := gin.Default()
-	r.LoadHTMLFiles()
 	r.GET("/", func(c *gin.Context) {
 		_, _ = c.Writer.Write(index)
 	})
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
+	r.GET("/list", func(c *gin.Context) {
+		_, _ = c.Writer.Write(list)
+	})
+	r.GET("/details", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "implement me",
 		})
 	})
-	err := r.Run(":80")
+	r.GET("/obtain_list", func(c *gin.Context) {
+		c.JSON(http.StatusOK, track.GetAll())
+	})
+	r.GET("/download/:index", func(c *gin.Context) {
+		println(index)
+		record, found := track.Get(c.Param("index"))
+		if found {
+			c.Header("Content-Description", "File Transfer")
+			c.Header("Content-Transfer-Encoding", "binary")
+			c.Header("Content-Disposition", "attachment; filename="+record.Name+filepath.Ext(record.Path))
+			c.Header("Content-Type", "application/octet-stream")
+			c.File(record.Path)
+		} else {
+			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		}
+	})
+	err := r.Run("[::]:80")
 	if err != nil {
 		return
 	}
