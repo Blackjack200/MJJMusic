@@ -57,7 +57,7 @@ func main() {
 			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
 		}
 	})
-	err := r.Run("[::]:80")
+	err := r.Run(":80")
 	if err != nil {
 		return
 	}

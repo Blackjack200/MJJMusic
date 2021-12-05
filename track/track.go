@@ -67,8 +67,8 @@ func Load(path string) error {
 				if err := json.Unmarshal(b, &r); err != nil {
 					return err
 				}
-				r.Path = filepath.Join(path, r.Name)
-				songs[util.Hash256(r.Name)] = r
+				r.Path = filepath.Join(path, r.Path)
+				songs[util.Identifier(r.Name)] = r
 			}
 		}
 	}
@@ -97,7 +97,7 @@ func toPublic(record InternalRecord) PublicRecord {
 		Name:  record.Name,
 		Desc:  record.Desc,
 		Year:  record.Year,
-		Index: util.Hash256(record.Name),
+		Index: util.Identifier(record.Name),
 	}
 }
 
@@ -112,6 +112,6 @@ func toInternal(file string, record PublicRecord) InternalRecord {
 
 func Register(basename string, file string, record PublicRecord) {
 	mux.Lock()
-	songs[util.Hash256(basename)] = toInternal(file, record)
+	songs[util.Identifier(basename)] = toInternal(file, record)
 	mux.Unlock()
 }
