@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/blackjack200/mjjmusic/util"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 	"sync"
@@ -68,6 +69,9 @@ func Load(path string) error {
 					return err
 				}
 				r.Path = filepath.Join(path, r.Path)
+				if _, err := os.Stat(r.Path); os.IsNotExist(err) {
+					panic(err)
+				}
 				songs[util.Identifier(r.Name)] = r
 			}
 		}
