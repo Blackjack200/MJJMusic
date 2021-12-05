@@ -15,8 +15,10 @@ var index []byte
 //go:embed html/list.html
 var list []byte
 
+//go:embed html/about.html
+var about []byte
+
 func main() {
-	gin.Logger()
 	if wd, err := os.Getwd(); err != nil {
 		panic(err)
 	} else {
@@ -24,7 +26,6 @@ func main() {
 		if err := os.MkdirAll(path, 0777); err != nil {
 			panic(err)
 		}
-		println(path)
 		if err := track.Load(path); err != nil {
 			panic(err)
 		}
@@ -35,6 +36,9 @@ func main() {
 	})
 	r.GET("/list", func(c *gin.Context) {
 		_, _ = c.Writer.Write(list)
+	})
+	r.GET("/about", func(c *gin.Context) {
+		_, _ = c.Writer.Write(about)
 	})
 	r.GET("/details/:index", func(c *gin.Context) {
 		c.JSON(http.StatusOK, gin.H{
@@ -51,6 +55,14 @@ func main() {
 			c.Header("Content-Transfer-Encoding", "binary")
 			c.Header("Content-Disposition", "attachment; filename="+record.Name+filepath.Ext(record.Path))
 			c.Header("Content-Type", "application/octet-stream")
+			c.File(record.Path)
+		} else {
+			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		}
+	})
+	r.GET("/play/:index", func(c *gin.Context) {
+		record, found := track.Get(c.Param("index"))
+		if found {
 			c.File(record.Path)
 		} else {
 			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})

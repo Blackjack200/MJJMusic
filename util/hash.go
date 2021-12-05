@@ -1,20 +1,17 @@
 package util
 
 import (
-	"strconv"
-	"sync"
-	"sync/atomic"
+	"crypto/sha256"
+	"encoding/base64"
+	"io"
+	"strings"
 )
 
-var mu = sync.Mutex{}
-var cnt int64 = 0
-var m = make(map[string]string)
-
 func Identifier(str string) string {
-	mu.Lock()
-	defer mu.Unlock()
-	if _, ok := m[str]; !ok {
-		m[str] = "song_" + strconv.FormatInt(atomic.AddInt64(&cnt, 1), 16)
+	h := sha256.New()
+	_, err := io.WriteString(h, str)
+	if err != nil {
+		panic(err)
 	}
-	return m[str]
+	return strings.ReplaceAll(base64.StdEncoding.EncodeToString(h.Sum(nil)), "/", "_")
 }
