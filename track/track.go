@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 )
@@ -38,13 +39,14 @@ type PublicRecord struct {
 }
 
 var mux = sync.Mutex{}
+var publicRecords []PublicRecord
 var songs = make(map[string]InternalRecord)
 
-func Write(path string) ([]byte, error) {
+/*func Write(path string) ([]byte, error) {
 	mux.Lock()
 	defer mux.Unlock()
 	return json.Marshal(songs)
-}
+}*/
 
 func Load(path string) error {
 	mux.Lock()
@@ -76,17 +78,39 @@ func Load(path string) error {
 			}
 		}
 	}
+	rcd := make([]PublicRecord, 0, len(songs))
+	for _, v := range songs {
+		rcd = append(rcd, toPublic(v))
+	}
+	publicRecords = sortPublic(rcd)
 	return nil
 }
 
-func GetAll() []PublicRecord {
-	mux.Lock()
-	defer mux.Unlock()
-	var r []PublicRecord
-	for _, v := range songs {
-		r = append(r, toPublic(v))
+func keys(elements map[string]PublicRecord) []string {
+	i, ks := 0, make([]string, len(elements))
+	for key := range elements {
+		ks[i] = key
+		i++
 	}
-	return r
+	return ks
+}
+
+func sortPublic(rcd []PublicRecord) []PublicRecord {
+	nameMap := make(map[string]PublicRecord)
+	for _, v := range rcd {
+		nameMap[v.Name] = v
+	}
+	k := keys(nameMap)
+	sort.Strings(k)
+	newMap := make([]PublicRecord, 0, len(rcd))
+	for _, s := range k {
+		newMap = append(newMap, nameMap[s])
+	}
+	return newMap
+}
+
+func GetAll() []PublicRecord {
+	return publicRecords
 }
 
 func Get(hash string) (InternalRecord, bool) {
@@ -96,26 +120,8 @@ func Get(hash string) (InternalRecord, bool) {
 	return r, ok
 }
 
-func toPublic(record InternalRecord) PublicRecord {
-	return PublicRecord{
-		Name:  record.Name,
-		Desc:  record.Desc,
-		Year:  record.Year,
-		Index: util.Identifier(record.Name),
-	}
-}
-
-func toInternal(file string, record PublicRecord) InternalRecord {
-	return InternalRecord{
-		Name: record.Name,
-		Desc: record.Desc,
-		Year: record.Year,
-		Path: file,
-	}
-}
-
-func Register(basename string, file string, record PublicRecord) {
+/*func Register(basename string, file string, record PublicRecord) {
 	mux.Lock()
 	songs[util.Identifier(basename)] = toInternal(file, record)
 	mux.Unlock()
-}
+}*/
