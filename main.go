@@ -3,7 +3,9 @@ package main
 import (
 	_ "embed"
 	"github.com/blackjack200/mjjmusic/track"
+	"github.com/blackjack200/mjjmusic/util"
 	"github.com/gin-gonic/gin"
+	"html/template"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -18,17 +20,20 @@ var list []byte
 //go:embed html/about.html
 var about []byte
 
+//go:embed html/trail.tmpl
+var trail []byte
+
 func main() {
+	tmpl, parseErr := template.New("Trail").Parse(string(trail))
+	if parseErr != nil {
+		panic(parseErr)
+	}
 	if wd, err := os.Getwd(); err != nil {
 		panic(err)
 	} else {
 		path := filepath.Join(wd, "music")
-		if err := os.MkdirAll(path, 0777); err != nil {
-			panic(err)
-		}
-		if err := track.Load(path); err != nil {
-			panic(err)
-		}
+		util.Must(os.MkdirAll(path, 0777))
+		util.Must(track.Load(path))
 	}
 	r := gin.Default()
 	r.GET("/", func(c *gin.Context) {
@@ -60,7 +65,7 @@ func main() {
 			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
 		}
 	})
-	r.GET("/play/:index", func(c *gin.Context) {
+	r.GET("/direct_play/:index", func(c *gin.Context) {
 		record, found := track.Get(c.Param("index"))
 		if found {
 			c.File(record.Path)
@@ -68,8 +73,15 @@ func main() {
 			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
 		}
 	})
-	err := r.Run(":80")
-	if err != nil {
+	r.GET("/play/:index", func(c *gin.Context) {
+		record, found := track.Get(c.Param("index"))
+		if found {
+			util.Must(tmpl.Execute(c.Writer, record))
+		} else {
+			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+		}
+	})
+	if err := r.Run(":80"); err != nil {
 		return
 	}
 }

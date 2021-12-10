@@ -2,6 +2,7 @@ package track
 
 import (
 	"encoding/json"
+	"fmt"
 	"github.com/blackjack200/mjjmusic/util"
 	"io/ioutil"
 	"os"
@@ -25,10 +26,13 @@ type AlbumPeriod string
 )*/
 
 type InternalRecord struct {
-	Name string
-	Desc string
-	Year int
-	Path string
+	Name     string
+	Desc     string
+	Year     int
+	Path     string
+	FileName string `json:"-"`
+	FileInfo string `json:"-"`
+	Index    string `json:"-"`
 }
 
 type PublicRecord struct {
@@ -52,12 +56,13 @@ func Load(path string) error {
 	mux.Lock()
 	defer mux.Unlock()
 	songs = make(map[string]InternalRecord)
-	dir, err := ioutil.ReadDir(path)
-	if err != nil {
-		return err
-	}
-	for _, f := range dir {
-		if !f.IsDir() {
+	if dir, err := ioutil.ReadDir(path); err != nil {
+		return fmt.Errorf("error readdir: %v", err)
+	} else {
+		for _, f := range dir {
+			if f.IsDir() {
+				continue
+			}
 			jsonPath := f.Name()
 			if !strings.Contains(jsonPath, ".json") {
 				continue
@@ -67,23 +72,28 @@ func Load(path string) error {
 				return err
 			} else {
 				var r InternalRecord
-				if err := json.Unmarshal(b, &r); err != nil {
-					return err
-				}
+				util.Must(json.Unmarshal(b, &r))
+				r.FileName = filepath.Base(r.Path)
 				r.Path = filepath.Join(path, r.Path)
 				if _, err := os.Stat(r.Path); os.IsNotExist(err) {
-					panic(err)
+					return fmt.Errorf("file not found: %v", err)
 				}
+				if info, err := util.FileInfo(r.Path); err != nil {
+					return err
+				} else {
+					r.FileInfo = info
+				}
+				r.Index = util.Identifier(r.Name)
 				songs[util.Identifier(r.Name)] = r
 			}
 		}
+		rcd := make([]PublicRecord, 0, len(songs))
+		for _, v := range songs {
+			rcd = append(rcd, toPublic(v))
+		}
+		publicRecords = sortPublic(rcd)
+		return nil
 	}
-	rcd := make([]PublicRecord, 0, len(songs))
-	for _, v := range songs {
-		rcd = append(rcd, toPublic(v))
-	}
-	publicRecords = sortPublic(rcd)
-	return nil
 }
 
 func keys(elements map[string]PublicRecord) []string {

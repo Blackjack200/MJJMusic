@@ -5,7 +5,6 @@
     <!-- 必须的 meta 标签 -->
     <meta charset="utf-8">
     <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
-
     <!-- Bootstrap 的 CSS 文件 -->
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"
             integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
@@ -18,43 +17,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css"
           integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" crossorigin="anonymous">
 
-    <title>MJJMusic</title>
+    <title>{{- /*gotype: github.com/blackjack200/mjjmusic/track.InternalRecord*/ -}}
+        {{.Name}}</title>
     <script lang="javascript">
-        const cardFormat = "<div class=\"card\">\n" +
-            "    <div class=\"card-body\">\n" +
-            "        <h4 class=\"card-title\">[NAME]</h4>\n" +
-            "        <p class=\"card-text\">[DESC]</p>\n" +
-            "        <div class=\"d-flex justify-content-between align-items-center\">\n" +
-            "            <div class=\"btn-group\">\n" +
-            "                <button type=\"button\" class=\"btn btn-sm btn-outline-secondary\"\n" +
-            "                        onclick=\"document.location='play/[INDEX]'\">Play\n" +
-            "                </button>\n" +
-            "                <button type=\"button\" class=\"btn btn-sm btn-outline-secondary\"\n" +
-            "                        onclick=\"document.location='download/[INDEX]'\">Download\n" +
-            "                </button>\n" +
-            "            </div>\n" +
-            "            <small class=\"text-muted\">Year: [YEAR]</small>\n" +
-            "        </div>\n" +
-            "    </div>\n" +
-            "</div>" +
-            "<br>"
-
-        function formatHTML(name, desc, year, index) {
-            return cardFormat.replaceAll("[NAME]", name)
-                .replaceAll("[DESC]", desc.replaceAll("\n", "<br>"))
-                .replaceAll("[YEAR]", year)
-                .replaceAll("[INDEX]", index);
-            //(cardFormat, name, desc, index, index, year);
-        }
-
         $(document).ready(function () {
-            $.getJSON('obtain_list', {},
-                function (result) {
-                    for (const track of result) {
-                        $('#list').append(formatHTML(track.Name, track.Desc, track.Year, track.Index));
-                    }
-                }
-            )
         })
     </script>
     <style>
@@ -78,7 +44,7 @@
                 <a class="nav-link" href="/">Home <span class="sr-only"></span></a>
             </li>
             <li class="nav-item">
-                <a class="nav-link active" href="list">List <span class="sr-only">(current)</span></a>
+                <a class="nav-link" href="list">List <span class="sr-only"></span></a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="about">About <span class="sr-only"></span></a>
@@ -90,9 +56,52 @@
 <main role="main" class="container-fluid primary">
     <div class="container align-items-center">
         <div class="container h-100">
-            <div class="">
-                <h1>👑 Michael Jackson Unreleased tracks & demos</h1>
-                <div class="list-group" id="list">
+            <div class="card">
+                <div class="card-header">
+                    <h1>{{.Name}}</h1>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <thead>
+                        </thead>
+                        <tbody>
+                        <tr>
+                            <td>Description</td>
+                            <td>{{.Desc}}</td>
+                        </tr>
+                        <tr>
+                            <td>Year</td>
+                            <td>{{.Year}}</td>
+                        </tr>
+                        <tr>
+                            <td>FileName</td>
+                            <td>{{.FileName}}</td>
+                        </tr>
+                        <tr>
+                            <td>FileInfo</td>
+                            <td>{{.FileInfo}}</td>
+                        </tr>
+                        </tbody>
+                    </table>
+
+                    <div id="audio-frame">
+                        <audio
+                                controls
+                                src="../direct_play/{{.Index}}">
+                            Your browser does not support the
+                            <code>audio</code> element.
+                        </audio>
+                    </div>
+                    <div class="container">
+                        <button class="btn btn-success" onclick="document.location='./../download/{{.Index}}'">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                                 class="bi bi-download" viewBox="0 0 16 16">
+                                <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                                <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                            </svg>
+                            Download
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
