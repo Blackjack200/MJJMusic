@@ -1,15 +1,19 @@
 package util
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
+	"github.com/gin-gonic/gin"
 	"io"
 	"io/fs"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"os/exec"
 	"strings"
+	"time"
 )
 
 func MakeIndex(str string) string {
@@ -70,4 +74,25 @@ func ScanDir(dir string) ([]fs.FileInfo, error) {
 		return nil, err
 	}
 	return files, nil
+}
+
+func NewFavicon(data []byte) gin.HandlerFunc {
+	reader := bytes.NewReader(data)
+
+	return func(c *gin.Context) {
+		if c.Request.RequestURI != "/favicon.ico" {
+			return
+		}
+		if c.Request.Method != "GET" && c.Request.Method != "HEAD" {
+			status := http.StatusOK
+			if c.Request.Method != "OPTIONS" {
+				status = http.StatusMethodNotAllowed
+			}
+			c.Header("Allow", "GET,HEAD,OPTIONS")
+			c.AbortWithStatus(status)
+			return
+		}
+		c.Header("Content-Type", "image/x-icon")
+		http.ServeContent(c.Writer, c.Request, "favicon.ico", time.Now(), reader)
+	}
 }

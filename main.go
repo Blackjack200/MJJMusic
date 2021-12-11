@@ -11,6 +11,9 @@ import (
 	"path/filepath"
 )
 
+//go:embed favicon.ico
+var favicon []byte
+
 //go:embed html/index.html
 var index []byte
 
@@ -36,6 +39,7 @@ func main() {
 		util.Must(track.Load(path))
 	}
 	r := gin.Default()
+	r.Use(util.NewFavicon(favicon))
 
 	r.GET("/", func(c *gin.Context) {
 		_, _ = c.Writer.Write(index)
