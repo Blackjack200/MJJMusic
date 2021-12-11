@@ -27,13 +27,16 @@ func makeInternalRecord(basePath string, jsonManifestFile string) (*InternalReco
 		return nil, err
 	} else {
 		audioPath := filepath.Join(basePath, manifest.FileName)
-		if info, err := util.FileInfo(audioPath); err != nil {
+		if size, err := util.FileSize(audioPath); err != nil {
+			return nil, err
+		} else if info, err := util.FileInfo(audioPath); err != nil {
 			return nil, fmt.Errorf("error file info: %v", err)
 		} else {
 			return &InternalRecord{
 				Manifest:      *manifest,
 				FilePath:      audioPath,
 				FileName:      manifest.FileName,
+				FileSize:      util.HumanReadableFileSize(size),
 				FileInfo:      info,
 				InternalIndex: util.MakeIndex(manifest.Name),
 			}, nil

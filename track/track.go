@@ -21,6 +21,7 @@ type InternalRecord struct {
 	Manifest      Manifest
 	FilePath      string
 	FileName      string
+	FileSize      string
 	FileInfo      string
 	InternalIndex string
 }

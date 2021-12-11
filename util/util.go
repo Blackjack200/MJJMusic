@@ -64,6 +64,25 @@ func FileExists(file string) bool {
 	return false
 }
 
+func FileSize(file string) (int64, error) {
+	if stat, err := os.Stat(file); err != nil {
+		return -1, err
+	} else {
+		return stat.Size(), nil
+	}
+}
+
+func HumanReadableFileSize(size int64) string {
+	units := []string{"B", "KB", "MB", "GB", "TB"}
+	unit := 0
+	s := float32(size)
+	for s > 1024 {
+		s /= 1024
+		unit++
+	}
+	return fmt.Sprintf("%.3f%s", s, units[unit])
+}
+
 func ReadFile(file string) ([]byte, error) {
 	return ioutil.ReadFile(file)
 }

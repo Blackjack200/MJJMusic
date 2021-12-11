@@ -29,8 +29,10 @@
             "        <div class=\"mdui-card-content\">[DESC]</div>\n" +
             "\n" +
             "        <div class=\"mdui-card-actions\">\n" +
-            "            <button class=\"mdui-btn mdui-ripple\" onclick=\"redirect('/details/[INDEX]')\">Details</button>\n" +
-            "            <button class=\"mdui-btn mdui-ripple\" onclick=\"redirect('/download/[INDEX]')\">Download</button>\n" +
+            "            <button class=\"mdui-btn mdui-ripple\" onclick=\"redirect('/details/[INDEX]')\">" +
+            "<i class=\"mdui-icon material-icons\">info_outline</i> Details</button>\n" +
+            "            <button class=\"mdui-btn mdui-ripple\" onclick=\"redirect('/download/[INDEX]')\">" +
+            "<i class=\"mdui-icon material-icons\">file_download</i> Download</button>\n" +
             "        </div>\n" +
             "    </div>\n" +
             "</div>\n" +
@@ -44,7 +46,7 @@
             //(cardFormat, name, desc, index, index, year);
         }
 
-        $(document).ready(function () {
+        function refresh() {
             $.getJSON('/obtain_list', {},
                 function (result) {
                     for (const track of result) {
@@ -52,7 +54,7 @@
                     }
                 }
             )
-        })
+        }
     </script>
     <style>
         .primary {
@@ -116,6 +118,7 @@
     $("#drawer-btn").on("click", function () {
         inst.toggle();
     });
+    refresh()
 </script>
 
 </html>
