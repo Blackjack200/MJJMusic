@@ -20,11 +20,11 @@ var list []byte
 //go:embed html/about.html
 var about []byte
 
-//go:embed html/trail.tmpl
-var trail []byte
+//go:embed html/details.tmpl
+var details []byte
 
 func main() {
-	tmpl, parseErr := template.New("Trail").Parse(string(trail))
+	detailsTmpl, parseErr := template.New("Details").Parse(string(details))
 	if parseErr != nil {
 		panic(parseErr)
 	}
@@ -72,10 +72,10 @@ func main() {
 			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
 		}
 	})
-	r.GET("/play/:index", func(c *gin.Context) {
+	r.GET("/details/:index", func(c *gin.Context) {
 		record, found := track.GetInternal(c.Param("index"))
 		if found {
-			util.Must(tmpl.Execute(c.Writer, record))
+			util.Must(detailsTmpl.Execute(c.Writer, record))
 		} else {
 			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
 		}
