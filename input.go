@@ -35,7 +35,7 @@ func main() {
 		for {
 			r := input()
 			f := filepath.Join(path, r.Name+".json")
-			if len(r.Path) == 0 {
+			if len(r.FileName) == 0 {
 				continue
 			}
 			if len(r.Name) == 0 {
@@ -50,8 +50,8 @@ func main() {
 	}
 }
 
-func input() track.InternalRecord {
-	r := track.InternalRecord{}
+func input() track.Manifest {
+	r := track.Manifest{}
 	print("track name: ")
 	r.Name = readLine()
 	print("track description: ")
@@ -67,6 +67,6 @@ func input() track.InternalRecord {
 		}
 	}
 	print("music file: ")
-	r.Path = readLine()
+	r.FileName = readLine()
 	return r
 }

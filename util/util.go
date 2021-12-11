@@ -5,12 +5,14 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
+	"io/fs"
+	"io/ioutil"
 	"os"
 	"os/exec"
 	"strings"
 )
 
-func Identifier(str string) string {
+func MakeIndex(str string) string {
 	h := sha256.New()
 	_, err := io.WriteString(h, str)
 	if err != nil {
@@ -45,4 +47,27 @@ func FileInfo(file string) (string, error) {
 	} else {
 		return string(output), nil
 	}
+}
+
+func FileExists(file string) bool {
+	if _, err := os.Stat(file); err != nil {
+		if os.IsNotExist(err) {
+			return false
+		}
+	} else {
+		return true
+	}
+	return false
+}
+
+func ReadFile(file string) ([]byte, error) {
+	return ioutil.ReadFile(file)
+}
+
+func ScanDir(dir string) ([]fs.FileInfo, error) {
+	files, err := ioutil.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+	return files, nil
 }

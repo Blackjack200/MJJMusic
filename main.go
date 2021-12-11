@@ -36,6 +36,7 @@ func main() {
 		util.Must(track.Load(path))
 	}
 	r := gin.Default()
+
 	r.GET("/", func(c *gin.Context) {
 		_, _ = c.Writer.Write(index)
 	})
@@ -45,43 +46,40 @@ func main() {
 	r.GET("/about", func(c *gin.Context) {
 		_, _ = c.Writer.Write(about)
 	})
-	r.GET("/details/:index", func(c *gin.Context) {
-		c.JSON(http.StatusOK, gin.H{
-			"message": "implement me",
-		})
-	})
+
 	r.GET("/obtain_list", func(c *gin.Context) {
-		c.JSON(http.StatusOK, track.GetAll())
+		c.JSON(http.StatusOK, track.GetPublic())
 	})
+
 	r.GET("/download/:index", func(c *gin.Context) {
-		record, found := track.Get(c.Param("index"))
+		record, found := track.GetInternal(c.Param("index"))
 		if found {
 			c.Header("Content-Description", "File Transfer")
 			c.Header("Content-Transfer-Encoding", "binary")
-			c.Header("Content-Disposition", "attachment; filename="+record.Name+filepath.Ext(record.Path))
+			c.Header("Content-Disposition", "attachment; filename="+record.FileName)
 			c.Header("Content-Type", "application/octet-stream")
-			c.File(record.Path)
+			c.File(record.FilePath)
 		} else {
 			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
 		}
 	})
+
 	r.GET("/direct_play/:index", func(c *gin.Context) {
-		record, found := track.Get(c.Param("index"))
+		record, found := track.GetInternal(c.Param("index"))
 		if found {
-			c.File(record.Path)
+			c.File(record.FilePath)
 		} else {
 			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
 		}
 	})
 	r.GET("/play/:index", func(c *gin.Context) {
-		record, found := track.Get(c.Param("index"))
+		record, found := track.GetInternal(c.Param("index"))
 		if found {
 			util.Must(tmpl.Execute(c.Writer, record))
 		} else {
 			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
 		}
 	})
-	if err := r.Run(":80"); err != nil {
-		return
-	}
+
+	util.Must(r.Run(":80"))
 }

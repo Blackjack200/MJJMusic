@@ -18,7 +18,7 @@
           integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" crossorigin="anonymous">
 
     <title>{{- /*gotype: github.com/blackjack200/mjjmusic/track.InternalRecord*/ -}}
-        {{.Name}}</title>
+        {{.Manifest.Name}}</title>
     <script lang="javascript">
         $(document).ready(function () {
         })
@@ -58,7 +58,7 @@
         <div class="container h-100">
             <div class="card">
                 <div class="card-header">
-                    <h1>{{.Name}}</h1>
+                    <h1>{{.Manifest.Name}}</h1>
                 </div>
                 <div class="card-body">
                     <table class="table table-bordered">
@@ -67,11 +67,11 @@
                         <tbody>
                         <tr>
                             <td>Description</td>
-                            <td>{{.Desc}}</td>
+                            <td>{{.Manifest.Desc}}</td>
                         </tr>
                         <tr>
                             <td>Year</td>
-                            <td>{{.Year}}</td>
+                            <td>{{.Manifest.Year}}</td>
                         </tr>
                         <tr>
                             <td>FileName</td>
@@ -87,13 +87,13 @@
                     <div id="audio-frame">
                         <audio
                                 controls
-                                src="../direct_play/{{.Index}}">
+                                src="../direct_play/{{.InternalIndex}}">
                             Your browser does not support the
                             <code>audio</code> element.
                         </audio>
                     </div>
                     <div class="container">
-                        <button class="btn btn-success" onclick="document.location='./../download/{{.Index}}'">
+                        <button class="btn btn-success" onclick="document.location='./../download/{{.InternalIndex}}'">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                                  class="bi bi-download" viewBox="0 0 16 16">
                                 <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>

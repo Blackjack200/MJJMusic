@@ -4,35 +4,26 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/blackjack200/mjjmusic/util"
-	"io/ioutil"
-	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 	"sync"
 )
 
 type AlbumPeriod string
 
-/*const (
-	OffTheWall           = AlbumPeriod("Off The Wall")
-	Thriller             = AlbumPeriod("Thriller")
-	Bad                  = AlbumPeriod("Bad")
-	Dangerous            = AlbumPeriod("Dangerous")
-	History              = AlbumPeriod("History")
-	BloodOnTheDanceFloor = AlbumPeriod("Blood On The Dance Floor")
-	Invincible           = AlbumPeriod("Invincible")
-	ThisIsIt             = AlbumPeriod("This is it")
-)*/
+type Manifest struct {
+	Name     string `json:"Name"`
+	Desc     string `json:"Desc"`
+	Year     int    `json:"Year"`
+	FileName string `json:"Path"`
+}
 
 type InternalRecord struct {
-	Name     string
-	Desc     string
-	Year     int
-	Path     string
-	FileName string `json:"-"`
-	FileInfo string `json:"-"`
-	Index    string `json:"-"`
+	Manifest      Manifest
+	FilePath      string
+	FileName      string
+	FileInfo      string
+	InternalIndex string
 }
 
 type PublicRecord struct {
@@ -46,92 +37,76 @@ var mux = sync.Mutex{}
 var publicRecords []PublicRecord
 var songs = make(map[string]InternalRecord)
 
-/*func Write(path string) ([]byte, error) {
-	mux.Lock()
-	defer mux.Unlock()
-	return json.Marshal(songs)
-}*/
-
-func Load(path string) error {
+func Load(basePath string) error {
 	mux.Lock()
 	defer mux.Unlock()
 	songs = make(map[string]InternalRecord)
-	if dir, err := ioutil.ReadDir(path); err != nil {
-		return fmt.Errorf("error readdir: %v", err)
+
+	if dir, err := util.ScanDir(basePath); err != nil {
+		return fmt.Errorf("error scandir: %v", err)
 	} else {
 		for _, f := range dir {
-			if f.IsDir() {
+			manifestJsonName := f.Name()
+			if f.IsDir() || !strings.EqualFold(filepath.Ext(manifestJsonName), ".json") {
 				continue
 			}
-			jsonPath := f.Name()
-			if !strings.Contains(jsonPath, ".json") {
-				continue
-			}
-			jsonPath = filepath.Join(path, jsonPath)
-			if b, err := ioutil.ReadFile(jsonPath); err != nil {
+			manifestJsonPath := filepath.Join(basePath, manifestJsonName)
+			if r, err := makeInternalRecord(basePath, manifestJsonPath); err != nil {
 				return err
 			} else {
-				var r InternalRecord
-				util.Must(json.Unmarshal(b, &r))
-				r.FileName = filepath.Base(r.Path)
-				r.Path = filepath.Join(path, r.Path)
-				if _, err := os.Stat(r.Path); os.IsNotExist(err) {
-					return fmt.Errorf("file not found: %v", err)
-				}
-				if info, err := util.FileInfo(r.Path); err != nil {
-					return err
-				} else {
-					r.FileInfo = info
-				}
-				r.Index = util.Identifier(r.Name)
-				songs[util.Identifier(r.Name)] = r
+				songs[r.InternalIndex] = *r
 			}
 		}
+
 		rcd := make([]PublicRecord, 0, len(songs))
 		for _, v := range songs {
 			rcd = append(rcd, toPublic(v))
 		}
 		publicRecords = sortPublic(rcd)
+
 		return nil
 	}
 }
 
-func keys(elements map[string]PublicRecord) []string {
-	i, ks := 0, make([]string, len(elements))
-	for key := range elements {
-		ks[i] = key
-		i++
+func makeJsonManifest(basePath string, jsonManifestFile string) (*Manifest, error) {
+	manifest := &Manifest{}
+	b, err := util.ReadFile(jsonManifestFile)
+	if err != nil {
+		return nil, fmt.Errorf("error read file: %v", err)
 	}
-	return ks
+	if err := json.Unmarshal(b, manifest); err != nil {
+		return nil, fmt.Errorf("error read json: %v", err)
+	}
+	if !util.FileExists(filepath.Join(basePath, manifest.FileName)) {
+		return nil, fmt.Errorf("error file not exists: %v", manifest.FileName)
+	}
+	return manifest, nil
 }
 
-func sortPublic(rcd []PublicRecord) []PublicRecord {
-	nameMap := make(map[string]PublicRecord)
-	for _, v := range rcd {
-		nameMap[v.Name] = v
+func makeInternalRecord(basePath string, jsonManifestFile string) (*InternalRecord, error) {
+	if manifest, err := makeJsonManifest(basePath, jsonManifestFile); err != nil {
+		return nil, err
+	} else {
+		audioPath := filepath.Join(basePath, manifest.FileName)
+		if info, err := util.FileInfo(audioPath); err != nil {
+			return nil, fmt.Errorf("error file info: %v", err)
+		} else {
+			return &InternalRecord{
+				Manifest:      *manifest,
+				FilePath:      audioPath,
+				FileName:      manifest.FileName,
+				FileInfo:      info,
+				InternalIndex: util.MakeIndex(manifest.Name),
+			}, nil
+		}
 	}
-	k := keys(nameMap)
-	sort.Strings(k)
-	newMap := make([]PublicRecord, 0, len(rcd))
-	for _, s := range k {
-		newMap = append(newMap, nameMap[s])
-	}
-	return newMap
 }
 
-func GetAll() []PublicRecord {
+func GetPublic() []PublicRecord {
 	return publicRecords
 }
 
-func Get(hash string) (InternalRecord, bool) {
-	mux.Lock()
-	defer mux.Unlock()
+func GetInternal(hash string) (InternalRecord, bool) {
 	r, ok := songs[hash]
 	return r, ok
 }
-
-/*func Register(basename string, file string, record PublicRecord) {
-	mux.Lock()
-	songs[util.Identifier(basename)] = toInternal(file, record)
-	mux.Unlock()
-}*/
