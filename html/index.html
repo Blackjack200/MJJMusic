@@ -7,67 +7,88 @@
     <!-- Bootstrap 的 CSS 文件 -->
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"
             integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"
-            integrity="sha384-9/reFTGAW83EW2RDu2S0VKaIzap3H66lZH81PoYlFhbGU+6BZp6G7niu735Sk7lN"
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/mdui@1.0.0/dist/css/mdui.min.css"
+          integrity="sha384-2PJ2u4NYg6jCNNpv3i1hK9AoAqODy6CdiC+gYiL2DVx+ku5wzJMFNdE3RoWfBIRP"
+          crossorigin="anonymous"/>
+    <script src="https://cdn.jsdelivr.net/npm/mdui@1.0.0/dist/js/mdui.min.js"
+            integrity="sha384-aB8rnkAu/GBsQ1q6dwTySnlrrbhqDwrDnpVHR2Wgm8pWLbwUnzDcIROX3VvCbaK+"
             crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-fQybjgWLrvvRgtW6bFlB7jaZrFsaBXjsOMm/tB9LTS58ONXgqbR9W8oWht/amnpF"
-            crossorigin="anonymous"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.1/dist/css/bootstrap.min.css"
-          integrity="sha384-zCbKRCUGaJDkqS1kPbPd7TveP5iyJE0EjAuZQTgFLD2ylzuqKfdKlfG/eSrtxUkn" crossorigin="anonymous">
-
-    <title>MJJMusic</title>
     <script lang="javascript">
-
+        function redirect(url) {
+            window.location = url;
+        }
     </script>
     <style>
         .primary {
             padding: 3rem 1.5rem;
         }
+
+        .align-items-center {
+            -ms-flex-align: center !important;
+            align-items: center !important;
+        }
     </style>
+    <title>MJJMusic</title>
 </head>
 
-<body class="text-center">
+<body class="mdui-drawer-body-left mdui-theme-layout-auto mdui-theme-primary-indigo">
 
-<nav class="navbar navbar-expand-lg navbar-light bg-light">
-    <a class="navbar-brand" href="/">MJJMusic</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-        <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarSupportedContent">
-        <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-                <a class="nav-link" href="/">Home <span class="sr-only">(current)</span></a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="list">List <span class="sr-only"></span></a>
-            </li>
-            <li class="nav-item">
-                <a class="nav-link" href="about">About <span class="sr-only"></span></a>
-            </li>
-        </ul>
+<div class="mdui-drawer" id="drawer">
+    <ul class="mdui-list">
+        <li class="mdui-subheader">MJJMusic</li>
+        <li class="mdui-list-item mdui-ripple" onclick="redirect('/')">
+            <i class="mdui-list-item-icon mdui-icon material-icons">home</i>
+            <div class="mdui-list-item-content">Home</div>
+        </li>
+        <li class="mdui-list-item mdui-ripple" onclick="redirect('/list')">
+            <i class="mdui-list-item-icon mdui-icon material-icons">list</i>
+            <div class="mdui-list-item-content">List</div>
+        </li>
+        <li class="mdui-list-item mdui-ripple" onclick="redirect('/about')">
+            <i class="mdui-list-item-icon mdui-icon material-icons">info_outline</i>
+            <div class="mdui-list-item-content">About</div>
+        </li>
+    </ul>
+</div>
+
+<div class="mdui-appbar">
+    <div class="mdui-toolbar mdui-color-theme">
+        <a class="mdui-btn mdui-btn-icon mdui-ripple">
+            <i class="mdui-icon material-icons" id="drawer-btn">menu</i>
+        </a>
+        <a href="/" class="mdui-typo-headline">MJJMusic</a>
     </div>
-</nav>
+</div>
 
-<main role="main" class="container primary">
-    <div class="container align-items-center">
+<main role="main" class="mdui-container primary">
+    <div class="mdui-container align-items-center">
         <div class="container h-100">
-            <div class="card-body">
-                <h1>👑 Michael Jackson Unreleased tracks & demos</h1>
+            <div class="mdui-card mdui-text-center">
+
+                <h1>👑 Michael Jackson Unreleased tracks</h1>
                 <p>
                     There are a lot of treasure that Michael Jackson gave us.
                     <br>
                     We want to collect it and share with you :D.
                 </p>
-                <button class="btn btn-primary" onclick="window.location='list'">List</button>
+                <button class="mdui-btn mdui-btn-dense" onclick="redirect('/list')">List</button>
                 <br>
-                <button class="btn btn-primary" onclick="window.location='about'">About</button>
+                <button class="mdui-btn mdui-btn-block" onclick="redirect('/about')">About</button>
             </div>
         </div>
     </div>
 </main>
-
 </body>
+
+<script src="https://cdn.jsdelivr.net/npm/mdui@1.0.0/dist/js/mdui.min.js"
+        integrity="sha384-aB8rnkAu/GBsQ1q6dwTySnlrrbhqDwrDnpVHR2Wgm8pWLbwUnzDcIROX3VvCbaK+"
+        crossorigin="anonymous"></script>
+<script lang="javascript">
+    const inst = new mdui.Drawer('#drawer');
+    $("#drawer-btn").on("click", function () {
+        inst.toggle();
+    });
+</script>
 
 </html>
