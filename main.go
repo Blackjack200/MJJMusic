@@ -7,27 +7,33 @@ import (
 	"github.com/blackjack200/mjjmusic/track"
 	"github.com/blackjack200/mjjmusic/util"
 	"github.com/gin-gonic/gin"
+	"github.com/golang-jwt/jwt"
 	"github.com/sirupsen/logrus"
 	"html/template"
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
+	"time"
 )
 
-//go:embed favicon.ico
+//go:embed assets/favicon.ico
 var favicon []byte
 
-//go:embed html/index.html
+//go:embed assets/html/index.html
 var index []byte
 
-//go:embed html/list.html
+//go:embed assets/html/list.html
 var list []byte
 
-//go:embed html/about.html
+//go:embed assets/html/about.html
 var about []byte
 
-//go:embed html/details.tmpl
+//go:embed assets/html/details.tmpl
 var details []byte
+
+//go:embed assets/html/login.html
+var login []byte
 
 //go:embed config_default.json
 var defaultConfig []byte
@@ -42,6 +48,7 @@ type Config struct {
 
 var wd string
 var log = logrus.New()
+var tokenPassword = util.RandomBytes(1024)
 
 func init() {
 	logrus.SetFormatter(&logrus.TextFormatter{
@@ -88,13 +95,23 @@ func main() {
 		if err := initServices(r, cfg); err != nil {
 			log.Fatalf("error init service: %v", err)
 		}
+		log.Infof("hash: %s", util.Hash256(cfg.AdminAccount))
+		log.Infof("hash: %s", util.Hash256(cfg.AdminPassword))
 		log.Infof("Running on %v", cfg.Bind)
 		util.Must(r.Run(cfg.Bind))
 	}
 }
 
+type Token struct {
+	jwt.StandardClaims
+}
+
 func initServices(r *gin.Engine, cfg *Config) error {
 	detailsTmpl, parseErr := template.New("Details").Parse(string(details))
+	if parseErr != nil {
+		return parseErr
+	}
+	//adminTmpl, parseErr := template.New("Admin").Parse(string(login))
 	if parseErr != nil {
 		return parseErr
 	}
@@ -141,5 +158,74 @@ func initServices(r *gin.Engine, cfg *Config) error {
 			c.AbortWithStatus(http.StatusNotFound)
 		}
 	})
+	r.GET("/auth/req", func(c *gin.Context) {
+		ac := c.Query("account")
+		pd := c.Query("password")
+		if len(ac) == 0 || len(pd) == 0 {
+			c.JSON(http.StatusOK, gin.H{
+				"status":  "error",
+				"message": "username or password is empty",
+				"token":   nil,
+			})
+			return
+		}
+		if !strings.EqualFold(util.Hash256(cfg.AdminAccount), ac) ||
+			!strings.EqualFold(util.Hash256(cfg.AdminPassword), pd) {
+			c.JSON(http.StatusOK, gin.H{
+				"status":  "error",
+				"message": "username or password is incorrect",
+				"token":   nil,
+			})
+			return
+		}
+		tokenString := NewToken(tokenPassword)
+		c.JSON(http.StatusOK, gin.H{
+			"status":  "ok",
+			"message": "login success",
+			"token":   tokenString,
+		})
+	})
+	r.GET("/auth/test", func(c *gin.Context) {
+		tk := c.Query("token")
+		c.JSON(http.StatusOK, gin.H{
+			"status": TokenValid(tk, tokenPassword),
+		})
+	})
+	r.GET("/"+cfg.AdminEntrance, func(c *gin.Context) {
+		_, _ = c.Writer.Write(login)
+	})
+	r.GET("/panel", func(c *gin.Context) {
+		tk := c.Query("token")
+		if TokenValid(tk, tokenPassword) {
+			//TODO Implement Admin Panel
+			_, _ = c.Writer.Write([]byte("OK"))
+		} else {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+		}
+	})
 	return nil
+}
+
+func NewToken(tokenPassword []byte) string {
+	tk := &Token{}
+	tk.ExpiresAt = time.Now().Add(time.Second * 20).Unix()
+	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
+
+	tokenString, _ := token.SignedString(tokenPassword)
+	return tokenString
+}
+
+func TokenValid(token string, tokenPassword []byte) bool {
+	if token == "" {
+		return false
+	}
+	tk := &Token{}
+	if t, err := jwt.ParseWithClaims(token, tk, func(token *jwt.Token) (interface{}, error) {
+		return tokenPassword, nil
+	}); err != nil {
+		return false
+	} else if t.Valid {
+		return true
+	}
+	return false
 }

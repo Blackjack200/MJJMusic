@@ -2,6 +2,7 @@ package util
 
 import (
 	"bytes"
+	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
 	"fmt"
@@ -20,6 +21,22 @@ func MakeIndex(str string) string {
 	h := sha256.New()
 	Must(io.WriteString(h, str))
 	return strings.ReplaceAll(base64.StdEncoding.EncodeToString(h.Sum(nil)), "/", "_")
+}
+func HexString(str []byte) string {
+	return fmt.Sprintf("%x", str)
+}
+
+func RandomBytes(len int) []byte {
+	b:= make([]byte, len)
+	_, err := rand.Read(b)
+	Must(err)
+	return b
+}
+
+func Hash256(str string) string {
+	h := sha256.New()
+	Must(io.WriteString(h, str))
+	return HexString(h.Sum(nil))
 }
 
 func Must(params ...interface{}) {

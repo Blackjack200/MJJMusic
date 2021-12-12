@@ -1,7 +1,7 @@
 {
   "tracks": "music",
   "bind": ":80",
-  "admin-entrance": "admin_page",
+  "admin-entrance": "login",
   "admin-account": "admin",
   "admin-password": "123456"
 }

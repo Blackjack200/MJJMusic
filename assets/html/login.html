@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+    <!-- 必须的 meta 标签 -->
+    <meta charset="utf-8">
+    <meta content="width=device-width, initial-scale=1, shrink-to-fit=no" name="viewport">
+    <!-- Bootstrap 的 CSS 文件 -->
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"
+            integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery.cookie@1.4.1/jquery.cookie.min.js"></script>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/mdui@1.0.0/dist/css/mdui.min.css"
+          integrity="sha384-2PJ2u4NYg6jCNNpv3i1hK9AoAqODy6CdiC+gYiL2DVx+ku5wzJMFNdE3RoWfBIRP"
+          crossorigin="anonymous"/>
+    <script src="https://cdn.jsdelivr.net/npm/mdui@1.0.0/dist/js/mdui.min.js"
+            integrity="sha384-aB8rnkAu/GBsQ1q6dwTySnlrrbhqDwrDnpVHR2Wgm8pWLbwUnzDcIROX3VvCbaK+"
+            crossorigin="anonymous"></script>
+    <script lang="javascript">
+        async function sha256(message) {
+            const msgBuffer = new TextEncoder().encode(message);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        function redirect(url) {
+            window.location = url;
+        }
+
+        async function login(account, password) {
+            $.ajax({
+                url: '/auth/req',
+                type: 'GET',
+                data: {
+                    account: await sha256(account),
+                    password: await sha256(password)
+                },
+                success: function (data) {
+                    if (data.status === "ok") {
+                        console.log(data.token)
+                        $.cookie('token', data.token);
+                        setInterval(function () {
+                            redirect('/panel?token=' + encodeURIComponent(data.token));
+                        }, 2000);
+                    }
+                    mdui.snackbar({
+                        message: data.message,
+                        position: 'top'
+                    });
+                },
+            });
+        }
+
+        function tokenValid(onSuccess, onFailed) {
+            $.ajax({
+                url: '/auth/test',
+                type: 'GET',
+                data: {
+                    token: $.cookie('token')
+                },
+                success: function (data) {
+                    if (data.status) {
+                        onSuccess();
+                    } else {
+                        $.cookie('token', null);
+                        onFailed();
+                    }
+                }
+            });
+        }
+
+        tokenValid(function () {
+            mdui.snackbar({
+                message: '自动登录成功',
+                position: 'top'
+            });
+            setInterval(function () {
+                redirect('/panel?token=' + encodeURIComponent($.cookie('token')));
+            }, 2000);
+        }, function () {
+            mdui.snackbar({
+                message: '自动登录失败',
+                position: 'top'
+            });
+        });
+    </script>
+    <style>
+        .primary {
+            padding: 3rem 1.5rem;
+        }
+
+        .align-items-center {
+            -ms-flex-align: center !important;
+            align-items: center !important;
+        }
+    </style>
+    <title>MJJMusic Admin</title>
+</head>
+
+<body class="mdui-drawer-body-left mdui-theme-layout-auto mdui-theme-primary-indigo">
+
+<div class="mdui-drawer" id="drawer">
+    <ul class="mdui-list">
+        <li class="mdui-subheader">MJJMusic</li>
+        <li class="mdui-list-item mdui-ripple" onclick="redirect('/')">
+            <i class="mdui-list-item-icon mdui-icon material-icons">home</i>
+            <div class="mdui-list-item-content">Home</div>
+        </li>
+        <li class="mdui-list-item mdui-ripple" onclick="redirect('/list')">
+            <i class="mdui-list-item-icon mdui-icon material-icons">list</i>
+            <div class="mdui-list-item-content">List</div>
+        </li>
+        <li class="mdui-list-item mdui-ripple" onclick="redirect('/about')">
+            <i class="mdui-list-item-icon mdui-icon material-icons">info_outline</i>
+            <div class="mdui-list-item-content">About</div>
+        </li>
+    </ul>
+</div>
+
+<div class="mdui-appbar">
+    <div class="mdui-toolbar mdui-color-theme">
+        <a class="mdui-btn mdui-btn-icon mdui-ripple">
+            <i class="mdui-icon material-icons" id="drawer-btn">menu</i>
+        </a>
+        <a href="/" class="mdui-typo-headline">MJJMusic</a>
+    </div>
+</div>
+
+<main role="main" class="mdui-container primary">
+    <div class="mdui-container align-items-center">
+        <div class="mdui-container">
+            <div class="mdui-card">
+                <div class="mdui-card-primary">
+                    <div class="mdui-card-primary-title">Login</div>
+                </div>
+                <div class="mdui-card-content">
+
+                    <div class="mdui-container">
+                        <div class="mdui-row">
+                            <div class="mdui-textfield mdui-textfield-floating-label">
+                                <label class="mdui-textfield-label">Account</label>
+                                <input class="mdui-textfield-input" type="text" id="account"/>
+                            </div>
+                            <div class="mdui-textfield mdui-textfield-floating-label">
+                                <label class="mdui-textfield-label">Password</label>
+                                <input class="mdui-textfield-input" type="password" id="password"/>
+                            </div>
+                            <button class="mdui-btn mdui-btn-block mdui-color-green" id="login"
+                                    onclick="$('#login').attr({'disabled':'true'});login($('#account').val(), $('#password').val()).then(function (){
+                                       $('#login').removeAttr('disabled');
+                                    });">
+                                Login
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+</body>
+
+<script src="https://cdn.jsdelivr.net/npm/mdui@1.0.0/dist/js/mdui.min.js"
+        integrity="sha384-aB8rnkAu/GBsQ1q6dwTySnlrrbhqDwrDnpVHR2Wgm8pWLbwUnzDcIROX3VvCbaK+"
+        crossorigin="anonymous"></script>
+<script lang="javascript">
+    const inst = new mdui.Drawer('#drawer');
+    $("#drawer-btn").on("click", function () {
+        inst.open();
+    });
+</script>
+
+</html>
+</html>
