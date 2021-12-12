@@ -2,9 +2,12 @@ package main
 
 import (
 	_ "embed"
+	"encoding/json"
+	"fmt"
 	"github.com/blackjack200/mjjmusic/track"
 	"github.com/blackjack200/mjjmusic/util"
 	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 	"html/template"
 	"net/http"
 	"os"
@@ -26,21 +29,75 @@ var about []byte
 //go:embed html/details.tmpl
 var details []byte
 
-func main() {
-	detailsTmpl, parseErr := template.New("Details").Parse(string(details))
-	if parseErr != nil {
-		panic(parseErr)
+//go:embed config_default.json
+var defaultConfig []byte
+
+type Config struct {
+	Tracks        string `json:"tracks"`
+	Bind          string `json:"bind"`
+	AdminEntrance string `json:"admin-entrance"`
+	AdminAccount  string `json:"admin-account"`
+	AdminPassword string `json:"admin-password"`
+}
+
+var wd string
+var log = logrus.New()
+
+func init() {
+	logrus.SetFormatter(&logrus.TextFormatter{
+		ForceColors: true,
+	})
+	var err error
+	if wd, err = os.Getwd(); err != nil {
+		log.Fatalf("failed to get working directory: %v", err)
 	}
-	if wd, err := os.Getwd(); err != nil {
-		panic(err)
+}
+
+func loadConfig() (*Config, error) {
+	path := filepath.Join(wd, "config.json")
+	if !util.FileExists(path) {
+		if err := util.WriteFile(path, defaultConfig); err != nil {
+			return nil, fmt.Errorf("error writing default config: %v", err)
+		}
+	}
+	if b, err := util.ReadFile(path); err != nil {
+		return nil, fmt.Errorf("error reading config: %v", err)
 	} else {
-		path := filepath.Join(wd, "music")
+		cfg := &Config{}
+		if err := json.Unmarshal(b, cfg); err != nil {
+			return nil, fmt.Errorf("error parsing config: %v", err)
+		}
+		return cfg, nil
+	}
+}
+
+func main() {
+	log.SetFormatter(&logrus.TextFormatter{
+		ForceColors: true,
+	})
+	if cfg, err := loadConfig(); err != nil {
+		log.Fatalf("error load config: %v", err)
+	} else {
+		path := filepath.Join(wd, cfg.Tracks)
 		util.Must(os.MkdirAll(path, 0777))
 		util.Must(track.Load(path))
+		gin.ForceConsoleColor()
+		r := gin.New()
+		writer := gin.LoggerWithWriter(&util.LogrusInfoWriter{Logger: log})
+		r.Use(writer, gin.Recovery(), util.NewFavicon(favicon))
+		if err := initServices(r, cfg); err != nil {
+			log.Fatalf("error init service: %v", err)
+		}
+		log.Info("Running on %v", cfg.Bind)
+		util.Must(r.Run(cfg.Bind))
 	}
-	r := gin.Default()
-	r.Use(util.NewFavicon(favicon))
+}
 
+func initServices(r *gin.Engine, cfg *Config) error {
+	detailsTmpl, parseErr := template.New("Details").Parse(string(details))
+	if parseErr != nil {
+		return parseErr
+	}
 	r.GET("/", func(c *gin.Context) {
 		_, _ = c.Writer.Write(index)
 	})
@@ -64,7 +121,7 @@ func main() {
 			c.Header("Content-Type", "application/octet-stream")
 			c.File(record.FilePath)
 		} else {
-			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+			c.AbortWithStatus(http.StatusNotFound)
 		}
 	})
 
@@ -73,7 +130,7 @@ func main() {
 		if found {
 			c.File(record.FilePath)
 		} else {
-			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+			c.AbortWithStatus(http.StatusNotFound)
 		}
 	})
 	r.GET("/details/:index", func(c *gin.Context) {
@@ -81,9 +138,8 @@ func main() {
 		if found {
 			util.Must(detailsTmpl.Execute(c.Writer, record))
 		} else {
-			c.JSON(http.StatusNotFound, gin.H{"error": "not found"})
+			c.AbortWithStatus(http.StatusNotFound)
 		}
 	})
-
-	util.Must(r.Run(":80"))
+	return nil
 }

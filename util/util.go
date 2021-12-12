@@ -18,10 +18,7 @@ import (
 
 func MakeIndex(str string) string {
 	h := sha256.New()
-	_, err := io.WriteString(h, str)
-	if err != nil {
-		panic(err)
-	}
+	Must(io.WriteString(h, str))
 	return strings.ReplaceAll(base64.StdEncoding.EncodeToString(h.Sum(nil)), "/", "_")
 }
 
@@ -66,7 +63,7 @@ func FileExists(file string) bool {
 
 func FileSize(file string) (int64, error) {
 	if stat, err := os.Stat(file); err != nil {
-		return -1, err
+		return -1, fmt.Errorf("failed to get file stat: %v", err)
 	} else {
 		return stat.Size(), nil
 	}
@@ -87,10 +84,18 @@ func ReadFile(file string) ([]byte, error) {
 	return ioutil.ReadFile(file)
 }
 
+func WriteFile(file string, d []byte) error {
+	return ioutil.WriteFile(file, d, 0644)
+}
+
+func DeleteFile(file string) error {
+	return os.Remove(file)
+}
+
 func ScanDir(dir string) ([]fs.FileInfo, error) {
 	files, err := ioutil.ReadDir(dir)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to scan dir: %v", err)
 	}
 	return files, nil
 }

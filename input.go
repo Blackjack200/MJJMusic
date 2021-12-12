@@ -56,11 +56,11 @@ func input() track.Manifest {
 	r.Name = readLine()
 	print("track description: ")
 	r.Desc = readLine()
-	print("track year: ")
 	suc := false
 	for !suc {
+		print("track year: ")
 		if y, err := strconv.Atoi(readLine()); err != nil {
-			println("invalid year")
+			print("\r")
 		} else {
 			r.Year = y
 			suc = true
