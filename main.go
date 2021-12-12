@@ -88,7 +88,7 @@ func main() {
 		if err := initServices(r, cfg); err != nil {
 			log.Fatalf("error init service: %v", err)
 		}
-		log.Info("Running on %v", cfg.Bind)
+		log.Infof("Running on %v", cfg.Bind)
 		util.Must(r.Run(cfg.Bind))
 	}
 }

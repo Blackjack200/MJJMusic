@@ -52,7 +52,7 @@ func Load(basePath string) error {
 			}
 			manifestJsonPath := filepath.Join(basePath, manifestJsonName)
 			if r, err := makeInternalRecord(basePath, manifestJsonPath); err != nil {
-				return err
+				return fmt.Errorf("error make internal record: %v", err)
 			} else {
 				songs[r.InternalIndex] = *r
 			}
