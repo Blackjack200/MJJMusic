@@ -68,21 +68,6 @@
                 }
             });
         }
-
-        tokenValid(function () {
-            mdui.snackbar({
-                message: '自动登录成功',
-                position: 'top'
-            });
-            setInterval(function () {
-                redirect('/panel?token=' + encodeURIComponent($.cookie('token')));
-            }, 2000);
-        }, function () {
-            mdui.snackbar({
-                message: '自动登录失败',
-                position: 'top'
-            });
-        });
     </script>
     <style>
         .primary {
@@ -131,26 +116,13 @@
         <div class="mdui-container">
             <div class="mdui-card">
                 <div class="mdui-card-primary">
-                    <div class="mdui-card-primary-title">Login</div>
+                    <div class="mdui-card-primary-title">Panel</div>
                 </div>
                 <div class="mdui-card-content">
 
                     <div class="mdui-container">
                         <div class="mdui-row">
-                            <div class="mdui-textfield mdui-textfield-floating-label">
-                                <label class="mdui-textfield-label">Account</label>
-                                <input class="mdui-textfield-input" type="text" id="account"/>
-                            </div>
-                            <div class="mdui-textfield mdui-textfield-floating-label">
-                                <label class="mdui-textfield-label">Password</label>
-                                <input class="mdui-textfield-input" type="password" id="password"/>
-                            </div>
-                            <button class="mdui-btn mdui-btn-block mdui-color-green" id="login"
-                                    onclick="$('#login').attr({'disabled':'true'});login($('#account').val(), $('#password').val()).finally(function (){
-                                       $('#login').removeAttr('disabled');
-                                    });">
-                                Login
-                            </button>
+
                         </div>
                     </div>
 

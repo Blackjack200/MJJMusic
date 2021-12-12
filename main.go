@@ -35,6 +35,9 @@ var details []byte
 //go:embed assets/html/login.html
 var login []byte
 
+//go:embed assets/html/panel.html
+var panel []byte
+
 //go:embed config_default.json
 var defaultConfig []byte
 
@@ -198,7 +201,7 @@ func initServices(r *gin.Engine, cfg *Config) error {
 		tk := c.Query("token")
 		if TokenValid(tk, tokenPassword) {
 			//TODO Implement Admin Panel
-			_, _ = c.Writer.Write([]byte("OK"))
+			_, _ = c.Writer.Write(panel)
 		} else {
 			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		}
@@ -208,7 +211,7 @@ func initServices(r *gin.Engine, cfg *Config) error {
 
 func NewToken(tokenPassword []byte) string {
 	tk := &Token{}
-	tk.ExpiresAt = time.Now().Add(time.Second * 20).Unix()
+	tk.ExpiresAt = time.Now().Add(time.Minute * 30).Unix()
 	token := jwt.NewWithClaims(jwt.GetSigningMethod("HS256"), tk)
 
 	tokenString, _ := token.SignedString(tokenPassword)
