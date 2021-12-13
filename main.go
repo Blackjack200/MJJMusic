@@ -98,5 +98,6 @@ func initServices(r *gin.Engine, cfg *Config, set *track.Set) error {
 		Account:  cfg.AdminAccount,
 		Password: cfg.AdminPassword,
 	})
+	reg(&service.ManipulateService{})
 	return nil
 }

@@ -68,6 +68,38 @@
                 }
             });
         }
+
+        function gcImpl(onSuccess, onFailed) {
+            $.ajax({
+                url: '/manipulate/gc',
+                type: 'GET',
+                data: {
+                    token: $.cookie('token')
+                },
+                success: function (data) {
+                    if (data.status === "ok") {
+                        onSuccess();
+                    } else {
+                        $.cookie('token', null);
+                        onFailed(data.status);
+                    }
+                }
+            });
+        }
+
+        function gc() {
+            gcImpl(function () {
+                mdui.snackbar({
+                    message: "清理成功",
+                    position: 'top'
+                });
+            }, function (reason) {
+                mdui.snackbar({
+                    message: "清理失败：" + reason,
+                    position: 'top'
+                });
+            })
+        }
     </script>
     <style>
         .primary {
@@ -79,7 +111,10 @@
             align-items: center !important;
         }
     </style>
-    <title>MJJMusic Admin</title>
+    <title>
+        {{- /*gotype: github.com/blackjack200/mjjmusic/service.RuntimeInfo*/ -}}
+        MJJMusic Admin
+    </title>
 </head>
 
 <body class="mdui-drawer-body-left mdui-theme-layout-auto mdui-theme-primary-indigo">
@@ -122,6 +157,42 @@
 
                     <div class="mdui-container">
                         <div class="mdui-row">
+
+                            <table class="mdui-table">
+                                <thead>
+                                </thead>
+                                <tbody>
+                                <tr>
+                                    <td>GoRoutineNum</td>
+                                    <td>{{.GoRoutineNum}}</td>
+                                </tr>
+                                <tr>
+                                    <td>GC Cycles</td>
+                                    <td>{{.GCCycles}}</td>
+                                </tr>
+                                <tr>
+                                    <td>Allocated Mem</td>
+                                    <td>{{.AllocMem}} MB</td>
+                                </tr>
+                                <tr>
+                                    <td>Heap Mem</td>
+                                    <td>{{.HeapMem}} MB</td>
+                                </tr>
+                                <tr>
+                                    <td>Stack Mem</td>
+                                    <td>{{.StackMem}} MB</td>
+                                </tr>
+                                <tr>
+                                    <td>Virtual Mem</td>
+                                    <td>{{.VirtualMem}} MB</td>
+                                </tr>
+                                </tbody>
+                            </table>
+
+                            <button class="mdui-btn mdui-btn-block mdui-color-green"
+                                    onclick="gc()">
+                                GC
+                            </button>
 
                         </div>
                     </div>

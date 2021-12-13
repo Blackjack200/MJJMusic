@@ -41,7 +41,7 @@
                         $.cookie('token', data.token);
                         setInterval(function () {
                             redirect('/panel?token=' + encodeURIComponent(data.token));
-                        }, 2000);
+                        }, 500);
                     }
                     mdui.snackbar({
                         message: data.message,

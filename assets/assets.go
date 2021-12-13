@@ -21,7 +21,7 @@ func NewRender() *HTMLRender {
 	register("details.tmpl", details)
 	register("about.html", about)
 	register("login.html", login)
-	register("panel.html", panel)
+	register("panel.tmpl", panel)
 	return r
 }
 

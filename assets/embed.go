@@ -20,7 +20,7 @@ var details string
 //go:embed html/login.html
 var login string
 
-//go:embed html/panel.html
+//go:embed html/panel.tmpl
 var panel string
 
 //go:embed config_default.json

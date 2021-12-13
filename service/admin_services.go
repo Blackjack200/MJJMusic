@@ -4,6 +4,7 @@ import (
 	"github.com/blackjack200/mjjmusic/util"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"runtime"
 	"strings"
 )
 
@@ -49,6 +50,33 @@ func (i *AuthService) Register(e *gin.Engine) {
 	})
 }
 
+type RuntimeInfo struct {
+	GoRoutineNum int
+	AllocMem     uint64
+	VirtualMem   uint64
+	StackMem     uint64
+	HeapMem      uint64
+	GCCycles     uint32
+}
+
+func getMemStats() runtime.MemStats {
+	var m2 runtime.MemStats
+	runtime.ReadMemStats(&m2)
+	return m2
+}
+
+func newRuntimeInfo() RuntimeInfo {
+	info := RuntimeInfo{}
+	stat := getMemStats()
+	info.GoRoutineNum = runtime.NumGoroutine()
+	info.AllocMem = stat.Sys / 1024 / 1024
+	info.VirtualMem = stat.HeapSys / 1024 / 1024
+	info.StackMem = stat.StackSys / 1024 / 1024
+	info.HeapMem = (stat.Mallocs - stat.Frees) / 1024 / 1024
+	info.GCCycles = stat.NumGC
+	return info
+}
+
 type AdminService struct {
 	DefaultService
 	Entrance string
@@ -62,9 +90,28 @@ func (i *AdminService) Register(e *gin.Engine) {
 		tk := c.Query("token")
 		if tokenValid(tk) {
 			//TODO Implement Admin Panel
-			c.HTML(http.StatusOK, "panel.html", nil)
+			c.HTML(http.StatusOK, "panel.tmpl", newRuntimeInfo())
 		} else {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
+			c.JSON(http.StatusOK, gin.H{"error": "unauthorized"})
+		}
+	})
+}
+
+type ManipulateService struct {
+	DefaultService
+	Entrance string
+}
+
+func (i *ManipulateService) Register(e *gin.Engine) {
+	e.GET("/manipulate/gc", func(c *gin.Context) {
+		tk := c.Query("token")
+		if tokenValid(tk) {
+			runtime.GC()
+			c.JSON(http.StatusOK, gin.H{
+				"status": "ok",
+			})
+		} else {
+			c.JSON(http.StatusOK, gin.H{"status": "unauthorized"})
 		}
 	})
 }
