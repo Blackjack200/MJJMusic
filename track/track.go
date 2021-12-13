@@ -8,8 +8,6 @@ import (
 	"sync"
 )
 
-type AlbumPeriod string
-
 type Manifest struct {
 	Name     string `json:"Name"`
 	Desc     string `json:"Desc"`
@@ -33,17 +31,38 @@ type PublicRecord struct {
 	Index string
 }
 
-var mux = sync.Mutex{}
-var publicRecords []PublicRecord
-var songs = make(map[string]InternalRecord)
+type Set struct {
+	mux      sync.Mutex
+	public   []PublicRecord
+	internal map[string]InternalRecord
+}
 
-func Load(basePath string) error {
-	mux.Lock()
-	defer mux.Unlock()
-	songs = make(map[string]InternalRecord)
+func (s *Set) GetPublic() []PublicRecord {
+	return s.public
+}
+
+func (s *Set) Internal(hash string) (InternalRecord, bool) {
+	r, ok := s.internal[hash]
+	return r, ok
+}
+
+func (s *Set) Register(t InternalRecord) {
+	s.mux.Lock()
+	defer s.mux.Unlock()
+	s.internal[t.InternalIndex] = t
+	s.public = append(s.public, toPublic(t))
+	s.public = sortPublic(s.public)
+}
+
+func Load(basePath string) (*Set, error) {
+	s := &Set{
+		mux:      sync.Mutex{},
+		public:   make([]PublicRecord, 0),
+		internal: make(map[string]InternalRecord),
+	}
 
 	if dir, err := util.ScanDir(basePath); err != nil {
-		return fmt.Errorf("error scandir: %v", err)
+		return nil, fmt.Errorf("error scandir: %v", err)
 	} else {
 		for _, f := range dir {
 			manifestJsonName := f.Name()
@@ -52,27 +71,11 @@ func Load(basePath string) error {
 			}
 			manifestJsonPath := filepath.Join(basePath, manifestJsonName)
 			if r, err := makeInternalRecord(basePath, manifestJsonPath); err != nil {
-				return fmt.Errorf("error make internal record: %v", err)
+				return nil, fmt.Errorf("error make internal record: %v", err)
 			} else {
-				songs[r.InternalIndex] = *r
+				s.Register(*r)
 			}
 		}
-
-		rcd := make([]PublicRecord, 0, len(songs))
-		for _, v := range songs {
-			rcd = append(rcd, toPublic(v))
-		}
-		publicRecords = sortPublic(rcd)
-
-		return nil
+		return s, nil
 	}
-}
-
-func GetPublic() []PublicRecord {
-	return publicRecords
-}
-
-func GetInternal(hash string) (InternalRecord, bool) {
-	r, ok := songs[hash]
-	return r, ok
 }

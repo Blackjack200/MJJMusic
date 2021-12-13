@@ -52,11 +52,15 @@
         }
 
         function tokenValid(onSuccess, onFailed) {
+            let tk = $.cookie('token')
+            if (tk === null) {
+                return
+            }
             $.ajax({
                 url: '/auth/test',
                 type: 'GET',
                 data: {
-                    token: $.cookie('token')
+                    token: tk
                 },
                 success: function (data) {
                     if (data.status) {

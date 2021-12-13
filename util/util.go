@@ -27,7 +27,7 @@ func HexString(str []byte) string {
 }
 
 func RandomBytes(len int) []byte {
-	b:= make([]byte, len)
+	b := make([]byte, len)
 	_, err := rand.Read(b)
 	Must(err)
 	return b
