@@ -35,7 +35,7 @@ func (i *AuthService) Register(e *gin.Engine) {
 			})
 			return
 		}
-		tokenString := newToken()
+		tokenString := newToken(c)
 		c.JSON(http.StatusOK, gin.H{
 			"status":  "ok",
 			"message": "login success",
@@ -45,7 +45,7 @@ func (i *AuthService) Register(e *gin.Engine) {
 	e.GET("/auth/test", func(c *gin.Context) {
 		tk := c.Query("token")
 		c.JSON(http.StatusOK, gin.H{
-			"status": tokenValid(tk),
+			"status": tokenValid(c, tk),
 		})
 	})
 }
@@ -88,7 +88,7 @@ func (i *AdminService) Register(e *gin.Engine) {
 	})
 	e.GET("/panel", func(c *gin.Context) {
 		tk := c.Query("token")
-		if tokenValid(tk) {
+		if tokenValid(c, tk) {
 			//TODO Implement Admin Panel
 			c.HTML(http.StatusOK, "panel.tmpl", newRuntimeInfo())
 		} else {
@@ -105,7 +105,7 @@ type ManipulateService struct {
 func (i *ManipulateService) Register(e *gin.Engine) {
 	e.GET("/manipulate/gc", func(c *gin.Context) {
 		tk := c.Query("token")
-		if tokenValid(tk) {
+		if tokenValid(c, tk) {
 			runtime.GC()
 			c.JSON(http.StatusOK, gin.H{
 				"status": "ok",
