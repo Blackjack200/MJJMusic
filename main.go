@@ -74,8 +74,6 @@ func main() {
 		if err := initServices(r, cfg, set); err != nil {
 			log.Fatalf("error init service: %v", err)
 		}
-		log.Infof("hash: %s", util.Hash256(cfg.AdminAccount))
-		log.Infof("hash: %s", util.Hash256(cfg.AdminPassword))
 		log.Infof("Running on %v", cfg.Bind)
 		util.Must(r.Run(cfg.Bind))
 	}

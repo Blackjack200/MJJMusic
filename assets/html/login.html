@@ -38,7 +38,6 @@
                 },
                 success: function (data) {
                     if (data.status === "ok") {
-                        console.log(data.token)
                         $.cookie('token', data.token);
                         setInterval(function () {
                             $.redirect('/panel', {'token': data.token});
@@ -80,7 +79,7 @@
                 position: 'top'
             });
             setInterval(function () {
-                redirect('/panel?token=' + encodeURIComponent($.cookie('token')));
+                $.redirect('/panel', {'token': $.cookie('token')});
             }, 2000);
         }, function () {
             mdui.snackbar({
