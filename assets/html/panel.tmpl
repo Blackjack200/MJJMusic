@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"
             integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery.cookie@1.4.1/jquery.cookie.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery.redirect@1.1.4/jquery.redirect.min.js"></script>
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/mdui@1.0.0/dist/css/mdui.min.css"
           integrity="sha384-2PJ2u4NYg6jCNNpv3i1hK9AoAqODy6CdiC+gYiL2DVx+ku5wzJMFNdE3RoWfBIRP"
@@ -27,34 +28,10 @@
             window.location = url;
         }
 
-        async function login(account, password) {
-            $.ajax({
-                url: '/auth/req',
-                type: 'GET',
-                data: {
-                    account: await sha256(account),
-                    password: await sha256(password)
-                },
-                success: function (data) {
-                    if (data.status === "ok") {
-                        console.log(data.token)
-                        $.cookie('token', data.token);
-                        setInterval(function () {
-                            redirect('/panel?token=' + encodeURIComponent(data.token));
-                        }, 2000);
-                    }
-                    mdui.snackbar({
-                        message: data.message,
-                        position: 'top'
-                    });
-                },
-            });
-        }
-
         function tokenValid(onSuccess, onFailed) {
             $.ajax({
                 url: '/auth/test',
-                type: 'GET',
+                type: 'POST',
                 data: {
                     token: $.cookie('token')
                 },
@@ -72,7 +49,7 @@
         function gcImpl(onSuccess, onFailed) {
             $.ajax({
                 url: '/manipulate/gc',
-                type: 'GET',
+                type: 'POST',
                 data: {
                     token: $.cookie('token')
                 },
@@ -87,17 +64,52 @@
             });
         }
 
+        function memInfoImpl(onSuccess, onFailed) {
+            $.ajax({
+                url: '/manipulate/mem',
+                type: 'POST',
+                data: {
+                    token: $.cookie('token')
+                },
+                success: function (data) {
+                    if (data.status === "ok") {
+                        onSuccess(data.info);
+                    } else {
+                        $.cookie('token', null);
+                        onFailed(data.status);
+                    }
+                }
+            });
+        }
+
         function gc() {
             gcImpl(function () {
                 mdui.snackbar({
-                    message: "清理成功",
+                    message: 'GC Success',
                     position: 'top'
                 });
+                memoryInfo()
             }, function (reason) {
                 mdui.snackbar({
-                    message: "清理失败：" + reason,
+                    message: 'GC Failed: ' + reason,
                     position: 'top'
                 });
+            })
+        }
+
+        function memoryInfo() {
+            $('#memory-info-table')
+                .html('')
+                .append('<div class="mdui-progress"><div class="mdui-progress-indeterminate"></div></div>');
+            memInfoImpl(function (data) {
+                $('#memory-info-table').html('');
+                Object.entries(data).forEach(function (item) {
+                    $('#memory-info-table')
+                        .append('<tr><td>' + item[0] + '</td><td>' + item[1] + '</td></tr>');
+                });
+            }, function (reason) {
+                $('#memory-info-table')
+                    .append('<tr><td>' + reason + '</td></tr>');
             })
         }
     </script>
@@ -111,10 +123,7 @@
             align-items: center !important;
         }
     </style>
-    <title>
-        {{- /*gotype: github.com/blackjack200/mjjmusic/service.RuntimeInfo*/ -}}
-        MJJMusic Admin
-    </title>
+    <title>MJJMusic Admin</title>
 </head>
 
 <body class="mdui-drawer-body-left mdui-theme-layout-auto mdui-theme-primary-indigo">
@@ -157,36 +166,7 @@
 
                     <div class="mdui-container">
                         <div class="mdui-row">
-
-                            <table class="mdui-table">
-                                <thead>
-                                </thead>
-                                <tbody>
-                                <tr>
-                                    <td>GoRoutineNum</td>
-                                    <td>{{.GoRoutineNum}}</td>
-                                </tr>
-                                <tr>
-                                    <td>GC Cycles</td>
-                                    <td>{{.GCCycles}}</td>
-                                </tr>
-                                <tr>
-                                    <td>Allocated Mem</td>
-                                    <td>{{.AllocMem}} MB</td>
-                                </tr>
-                                <tr>
-                                    <td>Heap Mem</td>
-                                    <td>{{.HeapMem}} MB</td>
-                                </tr>
-                                <tr>
-                                    <td>Stack Mem</td>
-                                    <td>{{.StackMem}} MB</td>
-                                </tr>
-                                <tr>
-                                    <td>Virtual Mem</td>
-                                    <td>{{.VirtualMem}} MB</td>
-                                </tr>
-                                </tbody>
+                            <table class="mdui-table" id="memory-info-table">
                             </table>
 
                             <button class="mdui-btn mdui-btn-block mdui-color-green"
@@ -213,6 +193,7 @@
     $("#drawer-btn").on("click", function () {
         inst.open();
     });
+    memoryInfo()
 </script>
 
 </html>

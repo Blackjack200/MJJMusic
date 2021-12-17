@@ -15,9 +15,9 @@ type AuthService struct {
 }
 
 func (i *AuthService) Register(e *gin.Engine) {
-	e.GET("/auth/req", func(c *gin.Context) {
-		ac := c.Query("account")
-		pd := c.Query("password")
+	e.POST("/auth/req", func(c *gin.Context) {
+		ac := c.PostForm("account")
+		pd := c.PostForm("password")
 		if len(ac) == 0 || len(pd) == 0 {
 			c.JSON(http.StatusOK, gin.H{
 				"status":  "error",
@@ -42,8 +42,8 @@ func (i *AuthService) Register(e *gin.Engine) {
 			"token":   tokenString,
 		})
 	})
-	e.GET("/auth/test", func(c *gin.Context) {
-		tk := c.Query("token")
+	e.POST("/auth/test", func(c *gin.Context) {
+		tk := c.PostForm("token")
 		c.JSON(http.StatusOK, gin.H{
 			"status": tokenValid(c, tk),
 		})
@@ -83,16 +83,16 @@ type AdminService struct {
 }
 
 func (i *AdminService) Register(e *gin.Engine) {
-	e.GET("/"+i.Entrance, func(c *gin.Context) {
+	e.Any("/"+i.Entrance, func(c *gin.Context) {
 		c.HTML(http.StatusOK, "login.html", nil)
 	})
-	e.GET("/panel", func(c *gin.Context) {
-		tk := c.Query("token")
+	e.POST("/panel", func(c *gin.Context) {
+		tk := c.PostForm("token")
 		if tokenValid(c, tk) {
 			//TODO Implement Admin Panel
-			c.HTML(http.StatusOK, "panel.tmpl", newRuntimeInfo())
+			c.HTML(http.StatusOK, "panel.tmpl", nil)
 		} else {
-			c.JSON(http.StatusOK, gin.H{"error": "unauthorized"})
+			c.Redirect(http.StatusTemporaryRedirect, "/"+i.Entrance)
 		}
 	})
 }
@@ -103,12 +103,23 @@ type ManipulateService struct {
 }
 
 func (i *ManipulateService) Register(e *gin.Engine) {
-	e.GET("/manipulate/gc", func(c *gin.Context) {
-		tk := c.Query("token")
+	e.POST("/manipulate/gc", func(c *gin.Context) {
+		tk := c.PostForm("token")
 		if tokenValid(c, tk) {
 			runtime.GC()
 			c.JSON(http.StatusOK, gin.H{
 				"status": "ok",
+			})
+		} else {
+			c.JSON(http.StatusOK, gin.H{"status": "unauthorized"})
+		}
+	})
+	e.POST("/manipulate/mem", func(c *gin.Context) {
+		tk := c.PostForm("token")
+		if tokenValid(c, tk) {
+			c.JSON(http.StatusOK, gin.H{
+				"status": "ok",
+				"info":   newRuntimeInfo(),
 			})
 		} else {
 			c.JSON(http.StatusOK, gin.H{"status": "unauthorized"})

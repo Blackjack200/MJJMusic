@@ -8,6 +8,7 @@
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"
             integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/jquery.cookie@1.4.1/jquery.cookie.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery.redirect@1.1.4/jquery.redirect.min.js"></script>
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/mdui@1.0.0/dist/css/mdui.min.css"
           integrity="sha384-2PJ2u4NYg6jCNNpv3i1hK9AoAqODy6CdiC+gYiL2DVx+ku5wzJMFNdE3RoWfBIRP"
@@ -30,7 +31,7 @@
         async function login(account, password) {
             $.ajax({
                 url: '/auth/req',
-                type: 'GET',
+                type: 'POST',
                 data: {
                     account: await sha256(account),
                     password: await sha256(password)
@@ -40,7 +41,7 @@
                         console.log(data.token)
                         $.cookie('token', data.token);
                         setInterval(function () {
-                            redirect('/panel?token=' + encodeURIComponent(data.token));
+                            $.redirect('/panel', {'token': data.token});
                         }, 500);
                     }
                     mdui.snackbar({
@@ -58,7 +59,7 @@
             }
             $.ajax({
                 url: '/auth/test',
-                type: 'GET',
+                type: 'POST',
                 data: {
                     token: tk
                 },
