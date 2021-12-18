@@ -4,14 +4,15 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"os"
+	"path/filepath"
+
 	"github.com/blackjack200/mjjmusic/assets"
 	"github.com/blackjack200/mjjmusic/service"
 	"github.com/blackjack200/mjjmusic/track"
 	"github.com/blackjack200/mjjmusic/util"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
-	"os"
-	"path/filepath"
 )
 
 type Config struct {

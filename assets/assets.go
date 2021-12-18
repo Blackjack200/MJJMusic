@@ -1,8 +1,9 @@
 package assets
 
 import (
-	"github.com/gin-gonic/gin/render"
 	"html/template"
+
+	"github.com/gin-gonic/gin/render"
 )
 
 type HTMLRender struct {

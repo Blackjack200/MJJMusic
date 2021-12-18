@@ -1,11 +1,12 @@
 package service
 
 import (
+	"strings"
+	"time"
+
 	"github.com/blackjack200/mjjmusic/util"
 	"github.com/gin-gonic/gin"
 	"github.com/golang-jwt/jwt"
-	"strings"
-	"time"
 )
 
 var runtimeTokenPassword = util.RandomBytes(1024)

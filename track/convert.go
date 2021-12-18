@@ -1,8 +1,9 @@
 package track
 
 import (
-	"github.com/blackjack200/mjjmusic/util"
 	"sort"
+
+	"github.com/blackjack200/mjjmusic/util"
 )
 
 func toPublic(record InternalRecord) PublicRecord {

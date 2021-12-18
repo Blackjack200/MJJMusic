@@ -3,8 +3,9 @@ package track
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/blackjack200/mjjmusic/util"
 	"path/filepath"
+
+	"github.com/blackjack200/mjjmusic/util"
 )
 
 func makeJsonManifest(basePath string, jsonManifestFile string) (*Manifest, error) {

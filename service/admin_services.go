@@ -1,11 +1,12 @@
 package service
 
 import (
-	"github.com/blackjack200/mjjmusic/util"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"runtime"
 	"strings"
+
+	"github.com/blackjack200/mjjmusic/util"
+	"github.com/gin-gonic/gin"
 )
 
 type AuthService struct {

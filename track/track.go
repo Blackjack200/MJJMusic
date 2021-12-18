@@ -2,10 +2,11 @@ package track
 
 import (
 	"fmt"
-	"github.com/blackjack200/mjjmusic/util"
 	"path/filepath"
 	"strings"
 	"sync"
+
+	"github.com/blackjack200/mjjmusic/util"
 )
 
 type Manifest struct {

@@ -3,12 +3,13 @@ package main
 import (
 	"bufio"
 	"encoding/json"
-	"github.com/blackjack200/mjjmusic/track"
 	"io/ioutil"
 	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/blackjack200/mjjmusic/track"
 )
 
 var scanner = bufio.NewScanner(os.Stdin)
