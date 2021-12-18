@@ -56,6 +56,10 @@ func Error(params ...interface{}) error {
 	return nil
 }
 
+func IsHiddenPath(path string) bool {
+	return strings.HasPrefix(path, ".")
+}
+
 func FileInfo(file string) (string, error) {
 	cmd := exec.Command("file", "-b", file)
 	cmd.Env = os.Environ()
@@ -68,12 +72,12 @@ func FileInfo(file string) (string, error) {
 }
 
 func FileExists(file string) bool {
-	if _, err := os.Stat(file); err != nil {
+	if info, err := os.Stat(file); err != nil {
 		if os.IsNotExist(err) {
 			return false
 		}
 	} else {
-		return true
+		return !info.IsDir()
 	}
 	return false
 }

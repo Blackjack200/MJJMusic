@@ -66,7 +66,7 @@ func Load(basePath string) (*Set, error) {
 	} else {
 		for _, f := range dir {
 			manifestJsonName := f.Name()
-			if f.IsDir() || !strings.EqualFold(filepath.Ext(manifestJsonName), ".json") {
+			if f.IsDir() || util.IsHiddenPath(manifestJsonName) || !strings.EqualFold(filepath.Ext(manifestJsonName), ".json") {
 				continue
 			}
 			manifestJsonPath := filepath.Join(basePath, manifestJsonName)
