@@ -23,6 +23,9 @@ var login string
 //go:embed html/panel.tmpl
 var panel string
 
+//go:embed html/404.html
+var err404 string
+
 //go:embed config_default.json
 var defaultConfig []byte
 

@@ -4,6 +4,7 @@ import (
 	_ "embed"
 	"encoding/json"
 	"fmt"
+	"net/http"
 	"os"
 	"path/filepath"
 
@@ -70,8 +71,16 @@ func main() {
 		gin.ForceConsoleColor()
 		r := gin.New()
 		r.HTMLRender = assets.NewRender()
+		file, err := util.TempFile("favicon.ico", assets.Favicon())
+		if err != nil {
+			log.Fatalf("error creating favicon tmp file: %v", err)
+		}
+		r.StaticFile("/favicon.ico", file)
 		writer := gin.LoggerWithWriter(&util.LogrusInfoWriter{Logger: log})
-		r.Use(writer, gin.Recovery(), util.NewFavicon(assets.Favicon()))
+		r.Use(writer, gin.RecoveryWithWriter(&util.LogrusErrorWriter{Logger: log}))
+		r.NoRoute(func(c *gin.Context) {
+			c.HTML(http.StatusNotFound, "404.html", gin.H{})
+		})
 		if err := initServices(r, cfg, set); err != nil {
 			log.Fatalf("error init service: %v", err)
 		}

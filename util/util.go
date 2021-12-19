@@ -1,7 +1,6 @@
 package util
 
 import (
-	"bytes"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/base64"
@@ -9,13 +8,9 @@ import (
 	"io"
 	"io/fs"
 	"io/ioutil"
-	"net/http"
 	"os"
 	"os/exec"
 	"strings"
-	"time"
-
-	"github.com/gin-gonic/gin"
 )
 
 func MakeIndex(str string) string {
@@ -122,23 +117,16 @@ func ScanDir(dir string) ([]fs.FileInfo, error) {
 	return files, nil
 }
 
-func NewFavicon(data []byte) gin.HandlerFunc {
-	reader := bytes.NewReader(data)
-
-	return func(c *gin.Context) {
-		if c.Request.RequestURI != "/favicon.ico" {
-			return
-		}
-		if c.Request.Method != "GET" && c.Request.Method != "HEAD" {
-			status := http.StatusOK
-			if c.Request.Method != "OPTIONS" {
-				status = http.StatusMethodNotAllowed
-			}
-			c.Header("Allow", "GET,HEAD,OPTIONS")
-			c.AbortWithStatus(status)
-			return
-		}
-		c.Header("Content-Type", "image/x-icon")
-		http.ServeContent(c.Writer, c.Request, "favicon.ico", time.Now(), reader)
+func TempFile(fileName string, data []byte) (string, error) {
+	tmpFile, err := ioutil.TempFile("", fileName)
+	if err != nil {
+		return "", fmt.Errorf("failed to create temp file: %v", err)
 	}
+	if _, err := tmpFile.Write(data); err != nil {
+		return "", fmt.Errorf("failed to write temp file: %v", err)
+	}
+	if err := tmpFile.Close(); err != nil {
+		return "", fmt.Errorf("failed to close temp file: %v", err)
+	}
+	return tmpFile.Name(), nil
 }

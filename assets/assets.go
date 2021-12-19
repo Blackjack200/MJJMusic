@@ -17,6 +17,7 @@ func NewRender() *HTMLRender {
 	register := func(f string, d string) {
 		r.templates[f] = template.Must(template.New(f).Parse(d))
 	}
+	register("404.html", err404)
 	register("index.html", index)
 	register("list.html", list)
 	register("details.tmpl", details)
