@@ -7,6 +7,7 @@
     <!-- Bootstrap 的 CSS 文件 -->
     <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"
             integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery.redirect@1.1.4/jquery.redirect.min.js"></script>
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/mdui@1.0.0/dist/css/mdui.min.css"
           integrity="sha384-2PJ2u4NYg6jCNNpv3i1hK9AoAqODy6CdiC+gYiL2DVx+ku5wzJMFNdE3RoWfBIRP"
@@ -14,11 +15,9 @@
     <script src="https://cdn.jsdelivr.net/npm/mdui@1.0.0/dist/js/mdui.min.js"
             integrity="sha384-aB8rnkAu/GBsQ1q6dwTySnlrrbhqDwrDnpVHR2Wgm8pWLbwUnzDcIROX3VvCbaK+"
             crossorigin="anonymous"></script>
-    <script lang="javascript">
-        function redirect(url) {
-            window.location = url;
-        }
 
+    <script src="js/common.js"></script>
+    <script lang="javascript">
         const cardFormat = "<div class=\"mdui-list\" id=\"list\">\n" +
             "    <div class=\"mdui-card\">\n" +
             "        <div class=\"mdui-card-primary\">\n" +
@@ -29,7 +28,7 @@
             "        <div class=\"mdui-card-content\">[DESC]</div>\n" +
             "\n" +
             "        <div class=\"mdui-card-actions\">\n" +
-            "            <button class=\"mdui-btn mdui-ripple\" onclick=\"redirect('/details/[INDEX]')\">" +
+            "            <button class=\"mdui-btn mdui-ripple\" onclick=\"redirect('/details?index='+encodeURIComponent('[INDEX]'))\">" +
             "<i class=\"mdui-icon material-icons\">info_outline</i> Details</button>\n" +
             "            <button class=\"mdui-btn mdui-ripple\" onclick=\"redirect('/download/[INDEX]')\">" +
             "<i class=\"mdui-icon material-icons\">file_download</i> Download</button>\n" +
@@ -43,7 +42,6 @@
                 .replaceAll("[DESC]", desc.replaceAll("\n", "<br>"))
                 .replaceAll("[YEAR]", year)
                 .replaceAll("[INDEX]", index);
-            //(cardFormat, name, desc, index, index, year);
         }
 
         function refresh() {
@@ -113,11 +111,8 @@
 <script src="https://cdn.jsdelivr.net/npm/mdui@1.0.0/dist/js/mdui.min.js"
         integrity="sha384-aB8rnkAu/GBsQ1q6dwTySnlrrbhqDwrDnpVHR2Wgm8pWLbwUnzDcIROX3VvCbaK+"
         crossorigin="anonymous"></script>
+<script src="js/drawer.js"></script>
 <script lang="javascript">
-    const inst = new mdui.Drawer('#drawer');
-    $("#drawer-btn").on("click", function () {
-        inst.open();
-    });
     refresh()
 </script>
 

@@ -3,6 +3,7 @@ package util
 import (
 	"crypto/rand"
 	"crypto/sha256"
+	"embed"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -10,6 +11,7 @@ import (
 	"io/ioutil"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 )
 
@@ -129,4 +131,20 @@ func TempFile(fileName string, data []byte) (string, error) {
 		return "", fmt.Errorf("failed to close temp file: %v", err)
 	}
 	return tmpFile.Name(), nil
+}
+
+func TemporizeEmbedDir(fs embed.FS, embedDirName string) string {
+	tmpDir, err := ioutil.TempDir("", "")
+	Must(err)
+	embedDir, _ := fs.ReadDir(embedDirName)
+	Must(err)
+	for _, e := range embedDir {
+		if e.IsDir() {
+			continue
+		}
+		b, err := fs.ReadFile(filepath.Join(embedDirName, e.Name()))
+		Must(err)
+		Must(WriteFile(filepath.Join(tmpDir, e.Name()), b))
+	}
+	return tmpDir
 }

@@ -16,74 +16,14 @@
     <script src="https://cdn.jsdelivr.net/npm/mdui@1.0.0/dist/js/mdui.min.js"
             integrity="sha384-aB8rnkAu/GBsQ1q6dwTySnlrrbhqDwrDnpVHR2Wgm8pWLbwUnzDcIROX3VvCbaK+"
             crossorigin="anonymous"></script>
+
+    <script src="js/common.js"></script>
+    <script src="js/crypto.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/panel.js"></script>
     <script lang="javascript">
-        async function sha256(message) {
-            const msgBuffer = new TextEncoder().encode(message);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-        }
-
-        function redirect(url) {
-            window.location = url;
-        }
-
-        function tokenValid(onSuccess, onFailed) {
-            $.ajax({
-                url: '/auth/test',
-                type: 'POST',
-                data: {
-                    token: $.cookie('token')
-                },
-                success: function (data) {
-                    if (data.status) {
-                        onSuccess();
-                    } else {
-                        $.cookie('token', null);
-                        onFailed();
-                    }
-                }
-            });
-        }
-
-        function gcImpl(onSuccess, onFailed) {
-            $.ajax({
-                url: '/manipulate/gc',
-                type: 'POST',
-                data: {
-                    token: $.cookie('token')
-                },
-                success: function (data) {
-                    if (data.status === "ok") {
-                        onSuccess();
-                    } else {
-                        $.cookie('token', null);
-                        onFailed(data.status);
-                    }
-                }
-            });
-        }
-
-        function memInfoImpl(onSuccess, onFailed) {
-            $.ajax({
-                url: '/manipulate/mem',
-                type: 'POST',
-                data: {
-                    token: $.cookie('token')
-                },
-                success: function (data) {
-                    if (data.status === "ok") {
-                        onSuccess(data.info);
-                    } else {
-                        $.cookie('token', null);
-                        onFailed(data.status);
-                    }
-                }
-            });
-        }
-
         function gc() {
-            gcImpl(function () {
+            requestGC(function () {
                 mdui.snackbar({
                     message: 'GC Success',
                     position: 'top'
@@ -101,7 +41,7 @@
             $('#memory-info-table')
                 .html('')
                 .append('<div class="mdui-progress"><div class="mdui-progress-indeterminate"></div></div>');
-            memInfoImpl(function (data) {
+            requestMemoryInfo(function (data) {
                 $('#memory-info-table').html('');
                 Object.entries(data).forEach(function (item) {
                     $('#memory-info-table')
@@ -173,6 +113,10 @@
                                     onclick="gc()">
                                 GC
                             </button>
+                            <button class="mdui-btn mdui-btn-block mdui-color-green"
+                                    onclick="memoryInfo()">
+                                Refresh Memory Info
+                            </button>
 
                         </div>
                     </div>
@@ -188,13 +132,9 @@
 <script src="https://cdn.jsdelivr.net/npm/mdui@1.0.0/dist/js/mdui.min.js"
         integrity="sha384-aB8rnkAu/GBsQ1q6dwTySnlrrbhqDwrDnpVHR2Wgm8pWLbwUnzDcIROX3VvCbaK+"
         crossorigin="anonymous"></script>
+<script src="js/drawer.js"></script>
 <script lang="javascript">
-    const inst = new mdui.Drawer('#drawer');
-    $("#drawer-btn").on("click", function () {
-        inst.open();
-    });
     memoryInfo()
 </script>
 
-</html>
 </html>

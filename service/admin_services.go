@@ -45,8 +45,12 @@ func (i *AuthService) Register(e *gin.Engine) {
 	})
 	e.POST("/auth/test", func(c *gin.Context) {
 		tk := c.PostForm("token")
+		stat := "failed"
+		if tokenValid(c, tk) {
+			stat = "ok"
+		}
 		c.JSON(http.StatusOK, gin.H{
-			"status": tokenValid(c, tk),
+			"status": stat,
 		})
 	})
 }
@@ -84,17 +88,13 @@ type AdminService struct {
 }
 
 func (i *AdminService) Register(e *gin.Engine) {
-	e.Any("/"+i.Entrance, func(c *gin.Context) {
+	e.GET("/"+i.Entrance, func(c *gin.Context) {
 		c.HTML(http.StatusOK, "login.html", nil)
 	})
 	e.POST("/panel", func(c *gin.Context) {
-		tk := c.PostForm("token")
-		if tokenValid(c, tk) {
-			//TODO Implement Admin Panel
+		requestAuthorized(c, func() {
 			c.HTML(http.StatusOK, "panel.tmpl", nil)
-		} else {
-			c.Redirect(http.StatusTemporaryRedirect, "/"+i.Entrance)
-		}
+		})
 	})
 }
 
@@ -105,25 +105,28 @@ type ManipulateService struct {
 
 func (i *ManipulateService) Register(e *gin.Engine) {
 	e.POST("/manipulate/gc", func(c *gin.Context) {
-		tk := c.PostForm("token")
-		if tokenValid(c, tk) {
+		requestAuthorized(c, func() {
 			runtime.GC()
 			c.JSON(http.StatusOK, gin.H{
 				"status": "ok",
 			})
-		} else {
-			c.JSON(http.StatusOK, gin.H{"status": "unauthorized"})
-		}
+		})
 	})
 	e.POST("/manipulate/mem", func(c *gin.Context) {
-		tk := c.PostForm("token")
-		if tokenValid(c, tk) {
+		requestAuthorized(c, func() {
 			c.JSON(http.StatusOK, gin.H{
 				"status": "ok",
 				"info":   newRuntimeInfo(),
 			})
-		} else {
-			c.JSON(http.StatusOK, gin.H{"status": "unauthorized"})
-		}
+		})
 	})
+}
+
+func requestAuthorized(c *gin.Context, then func()) {
+	tk := c.PostForm("token")
+	if tokenValid(c, tk) {
+		then()
+	} else {
+		c.JSON(http.StatusOK, gin.H{"status": "unauthorized"})
+	}
 }

@@ -70,14 +70,19 @@ func main() {
 		}
 		gin.ForceConsoleColor()
 		r := gin.New()
-		r.HTMLRender = assets.NewRender()
+		tmpl := assets.ParseHTMLTemplate()
+		r.SetHTMLTemplate(tmpl)
+
 		file, err := util.TempFile("favicon.ico", assets.Favicon())
 		if err != nil {
 			log.Fatalf("error creating favicon tmp file: %v", err)
 		}
+		r.StaticFS("/js", assets.StaticJavaScriptFS())
 		r.StaticFile("/favicon.ico", file)
+
 		writer := gin.LoggerWithWriter(&util.LogrusInfoWriter{Logger: log})
 		r.Use(writer, gin.RecoveryWithWriter(&util.LogrusErrorWriter{Logger: log}))
+
 		r.NoRoute(func(c *gin.Context) {
 			c.HTML(http.StatusNotFound, "404.html", gin.H{})
 		})

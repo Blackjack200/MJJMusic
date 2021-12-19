@@ -37,8 +37,8 @@ type DetailsService struct {
 }
 
 func (i *DetailsService) Register(e *gin.Engine) {
-	e.GET("/details/:index", func(c *gin.Context) {
-		record, found := i.Tracks.Internal(c.Param("index"))
+	e.GET("/details/", func(c *gin.Context) {
+		record, found := i.Tracks.Internal(c.Query("index"))
 		if found {
 			c.HTML(http.StatusOK, "details.tmpl", record)
 		} else {

@@ -1,7 +1,6 @@
 package service
 
 import (
-	"github.com/blackjack200/mjjmusic/assets"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 )
@@ -16,7 +15,7 @@ type DefaultService struct {
 	log *logrus.Logger
 }
 
-func (d *DefaultService) Register(*gin.Engine, assets.HTMLRender) {
+func (d *DefaultService) Register(*gin.Engine) {
 
 }
 
