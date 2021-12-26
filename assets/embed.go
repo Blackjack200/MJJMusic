@@ -1,33 +1,28 @@
 package assets
 
-import _ "embed"
+import (
+	"embed"
+	_ "embed"
+	"io/fs"
+
+	"github.com/blackjack200/mjjmusic/util"
+)
+
+//go:embed html
+var html embed.FS
+var avaFs fs.FS
 
 //go:embed favicon.ico
 var favicon []byte
 
-//go:embed html/index.html
-var index string
-
-//go:embed html/list.html
-var list string
-
-//go:embed html/about.html
-var about string
-
-//go:embed html/details.tmpl
-var details string
-
-//go:embed html/login.html
-var login string
-
-//go:embed html/panel.tmpl
-var panel string
-
-//go:embed html/404.html
-var err404 string
-
 //go:embed config_default.json
 var defaultConfig []byte
+
+func init() {
+	var err error
+	avaFs, err = fs.Sub(html, "html")
+	util.Must(err)
+}
 
 func DefaultConfig() []byte {
 	return defaultConfig
