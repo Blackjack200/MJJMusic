@@ -11,14 +11,15 @@ import (
 func makeJsonManifest(basePath string, jsonManifestFile string) (*Manifest, error) {
 	manifest := &Manifest{}
 	b, err := util.ReadFile(jsonManifestFile)
+	name := filepath.Base(jsonManifestFile)
 	if err != nil {
-		return nil, fmt.Errorf("error read file: %v", err)
+		return nil, fmt.Errorf("error read file %v: %v", name, err)
 	}
 	if err := json.Unmarshal(b, manifest); err != nil {
-		return nil, fmt.Errorf("error read json: %v", err)
+		return nil, fmt.Errorf("error read json %v: %v", name, err)
 	}
 	if !util.FileExists(filepath.Join(basePath, manifest.FileName)) {
-		return nil, fmt.Errorf("error file not exists: %v", manifest.FileName)
+		return nil, fmt.Errorf("error audio file not exists: %v", manifest.FileName)
 	}
 	return manifest, nil
 }
@@ -40,6 +41,8 @@ func makeInternalRecord(basePath string, jsonManifestFile string) (*InternalReco
 				FileSize:      util.HumanReadableFileSize(size),
 				FileInfo:      info,
 				InternalIndex: util.MakeIndex(manifest.Name),
+				MimeType:      util.MustString(util.MimeType(audioPath)),
+				MimeEncoding:  util.MustString(util.MimeEncoding(audioPath)),
 			}, nil
 		}
 	}

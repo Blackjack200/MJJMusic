@@ -43,6 +43,15 @@ func Must(params ...interface{}) {
 	}
 }
 
+func MustString(params ...interface{}) string {
+	for _, param := range params {
+		if v, ok := param.(string); ok && v != "" {
+			return v
+		}
+	}
+	panic("Non-Empty String Result Not Found")
+}
+
 func Error(params ...interface{}) error {
 	for _, param := range params {
 		if v, ok := param.(error); ok && v != nil {
@@ -64,6 +73,28 @@ func FileInfo(file string) (string, error) {
 		return "", fmt.Errorf("failed to read fileinfo: %v", err)
 	} else {
 		return string(output), nil
+	}
+}
+
+func MimeType(file string) (string, error) {
+	cmd := exec.Command("file", "-b", "--mime-type", file)
+	cmd.Env = os.Environ()
+
+	if output, err := cmd.CombinedOutput(); err != nil {
+		return "", fmt.Errorf("failed to read mime type: %v", err)
+	} else {
+		return strings.TrimSpace(string(output)), nil
+	}
+}
+
+func MimeEncoding(file string) (string, error) {
+	cmd := exec.Command("file", "-b", "--mime-encoding", file)
+	cmd.Env = os.Environ()
+
+	if output, err := cmd.CombinedOutput(); err != nil {
+		return "", fmt.Errorf("failed to read mime encoding: %v", err)
+	} else {
+		return strings.TrimSpace(string(output)), nil
 	}
 }
 

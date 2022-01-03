@@ -23,6 +23,8 @@ type InternalRecord struct {
 	FileSize      string
 	FileInfo      string
 	InternalIndex string
+	MimeType      string
+	MimeEncoding  string
 }
 
 type PublicRecord struct {
@@ -65,18 +67,38 @@ func Load(basePath string) (*Set, error) {
 	if dir, err := util.ScanDir(basePath); err != nil {
 		return nil, fmt.Errorf("error scandir: %v", err)
 	} else {
+		c := make(chan error)
+		g := sync.WaitGroup{}
 		for _, f := range dir {
 			manifestJsonName := f.Name()
 			if f.IsDir() || util.IsHiddenPath(manifestJsonName) || !strings.EqualFold(filepath.Ext(manifestJsonName), ".json") {
 				continue
 			}
 			manifestJsonPath := filepath.Join(basePath, manifestJsonName)
-			if r, err := makeInternalRecord(basePath, manifestJsonPath); err != nil {
-				return nil, fmt.Errorf("error make internal record: %v", err)
-			} else {
-				s.Register(*r)
+			g.Add(1)
+			go func(s *Set, b, p string) {
+				defer g.Done()
+				if r, err := makeInternalRecord(b, p); err != nil {
+					c <- err
+				} else {
+					s.Register(*r)
+				}
+			}(s, basePath, manifestJsonPath)
+		}
+		go func() {
+			g.Wait()
+			close(c)
+		}()
+		for {
+			select {
+			case err := <-c:
+				if err != nil {
+					return nil, fmt.Errorf("error make internal record: %v", err)
+				}
+				goto end
 			}
 		}
+	end:
 		return s, nil
 	}
 }

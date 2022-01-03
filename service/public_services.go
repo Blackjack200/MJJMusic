@@ -67,9 +67,9 @@ func (i *AudioService) Register(e *gin.Engine) {
 		record, found := i.Tracks.Internal(c.Param("index"))
 		if found {
 			c.Header("Content-Description", "File Transfer")
-			c.Header("Content-Transfer-Encoding", "binary")
+			c.Header("Content-Transfer-Encoding", record.MimeEncoding)
 			c.Header("Content-Disposition", "attachment; filename="+record.FileName)
-			c.Header("Content-Type", "application/octet-stream")
+			c.Header("Content-Type", record.MimeType)
 			c.File(record.FilePath)
 		} else {
 			c.AbortWithStatus(http.StatusNotFound)
@@ -78,6 +78,8 @@ func (i *AudioService) Register(e *gin.Engine) {
 	e.GET("/direct_play/:index", func(c *gin.Context) {
 		record, found := i.Tracks.Internal(c.Param("index"))
 		if found {
+			c.Header("Content-Type", record.MimeType)
+			c.Header("Content-Transfer-Encoding", record.MimeEncoding)
 			c.File(record.FilePath)
 		} else {
 			c.AbortWithStatus(http.StatusNotFound)
